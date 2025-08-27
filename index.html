@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single:wght@100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <img class="map" src="board.png">
+    <div class="container1">
+        <input type="text" class="task" placeholder="Enter the task...">
+        <input type="text" class="time" placeholder="Time: 1:00pm-2:00pm">
+
+        <details class="cobox">
+            <summary>Task:time</summary>
+        </details>
+    
+    </div>
+
+
+    <script type="module" src="script.js"></script>
+
+            <div class="instructions">
+                <h1 class="instruction-title">Instructions</h1>
+                <p class="instruction-text">
+                    1.Enter the task and timeframe in which in you want to complete the task.
+                </p>
+                <p class="instruction-text">
+                    2.After completing the task you can click the checkbox to mark it green.
+                </p>
+                <p class="instruction-text">
+                    3.If you fail to do the task on time an AI will ask you to state why you weren't 
+                    able to complete the task. The AI will then evaluate your response and mark the checkbox as red or yellow based
+                    on whether your reason was valid or not.
+                </p>
+                <p class="instruction-text">
+                    4.Once you're done for the day, click 'end day' to get an evaluation on
+                    your performance.
+                </p>
+                <p class="instruction-text">
+                    5.You can also click 'reset' to clear all tasks and start fresh.
+                </p>
+                <p class="instruction-text">
+                    6.Good luck!
+                </p>
+            </div>
+
+</body>
+</html>

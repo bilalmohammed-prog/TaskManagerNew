@@ -1,0 +1,139 @@
+html{
+    height:100%;
+}
+body{
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(8, 0, 44, 0.863);
+    height: 100%;
+    width:100%;
+    position: fixed;
+}
+.container1{
+    position:fixed;
+    width:100px;
+    height:100px;
+    top:40vh
+
+}
+
+.task{
+    position:absolute;
+    bottom:100px;
+    right:-105px;
+    height:100px;
+    padding-right:40px;
+    padding-left:40px;
+    border-radius:10px;
+    border:rgb(0, 0, 0) 2px solid;
+    background-color: rgb(245, 255, 131);
+    font-size:20px;
+    z-index:75;
+    font-family:"Bitcount Prop Single";
+
+}
+.time{
+    position:absolute;
+    top:20px;
+    height:40px;
+    padding-right:4px;
+    padding-left:30px;
+    left:-65px;
+    border-radius:5px;
+    border:rgb(245, 255, 131) 3px solid;
+    background-color: rgb(245, 255, 131);
+    border:rgb(0, 0, 0) 2px solid;
+    font-size:14px;
+    z-index:75;
+    font-family:"Bitcount Prop Single";
+}
+
+.instructions{
+    position:fixed;
+    z-index:100;
+    right:1000px;
+    top:10vh;
+
+}
+.map{
+    height:1430px;
+    z-index:0;
+
+    position:absolute;
+    left:-20px;
+}
+.instruction-text{
+    width:250px;
+    font-family:"Bitcount Prop Single";
+    color: rgb(0, 255, 238);
+}
+.instruction-title{
+    font-family:"Bitcount Prop Single";
+    color: rgb(0, 255, 238);
+}
+
+.obj{
+    font-family:Arial;
+}
+.container3{
+    max-width: 250px;
+    position:relative;
+}
+.cobox{
+    background-color: rgb(245, 255, 131);
+    border: rgb(0, 0, 0) 2px solid;
+    border-radius: 10px;
+    padding: 10px;
+    font-family:"Bitcount Prop Single";
+    position:absolute;
+    top:100px;
+    right:-157px;
+    padding-right:20px;
+    padding-left:20px;
+    width:400px;
+    overflow-y: scroll;
+    max-height: 200px;
+}
+
+/* Custom scrollbar for .cobox */
+.cobox::-webkit-scrollbar {
+    width: 10px;
+    border-radius: 8px;
+}
+
+.delete-button {
+    width:20px;
+    height:20px;
+    background-color: white;
+    cursor: pointer;
+    position:absolute;
+    right:-160px;
+    top:-5px;
+}
+.completed-button {
+    width:20px;
+    height:20px;
+    background-color: white;
+    cursor: pointer;
+    position:absolute;
+    right:-130px;
+    top:-5px;
+}
+
+.delete-button:hover {
+    background-color: darkred;
+
+}
+.completed-button:hover{
+    background-color: darkred;
+
+}
+.checkbox{
+    position:absolute;
+    right:-80px;
+    top:-5px;
+    width:20px;
+    height:20px;
+    background-color: white;
+}
