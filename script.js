@@ -83,7 +83,7 @@ window.onload = info.forEach((item)=>{
                             <button class="checkbox" data-class="${item.id}"></button>
                         </p>`;
 
-    if (item.hours <= dayjs().hour()) {
+    if (item.hours <= dayjs().hour() && item.mins < dayjs().minute()) {
         const container = document.querySelector(`.container3[data-class="${item.id}"]`);
     if (container) {
         const checkbox = container.querySelector('.checkbox');
