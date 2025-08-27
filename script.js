@@ -5,7 +5,7 @@ let time=document.querySelector('.time');
 
 
 let cobox =document.querySelector('.cobox');
-
+//storing_data open
 addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         
@@ -31,31 +31,23 @@ addEventListener('keydown', (event) => {
             localStorage.setItem("info",JSON.stringify(info));
             console.log(info);
 
-//barrier extracting endTime and comparing with actual time
-            
-// barrier
             cobox.innerHTML += `<p class="container3" data-class="${newtask.id}">
                                     ${newtask.task} : ${newtask.startTime} to ${newtask.endTime}
-                                    <button class="delete-button" data-class="${newtask.id}">D</button>
-                                    <button class="completed-button" data-class="${newtask.id}">C</button>
-                                    <button class="checkbox" data-class="${newtask.id}"></button>
+                                    <button class="delete-button">D</button>
+                                    <button class="completed-button">C</button>
+                                    <button class="checkbox" data-id-"${newtask.id}"></button>
                                 </p>`;
 
     }}
 });
-
-// ...existing code...
-
-
-
-
+//storing_data closed
 
 cobox.addEventListener('dblclick', function(event) {
     if (event.target.classList.contains('delete-button')) {
         const para = event.target.closest('.container3');
         if (para) {
             para.remove();
-            
+
         }
     }
 });
