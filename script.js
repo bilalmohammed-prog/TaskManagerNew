@@ -35,7 +35,7 @@ addEventListener('keydown', (event) => {
                                     ${newtask.task} : ${newtask.startTime} to ${newtask.endTime}
                                     <button class="delete-button">D</button>
                                     <button class="completed-button">C</button>
-                                    <button class="checkbox" data-id-"${newtask.id}"></button>
+                                    <button class="checkbox" data-class-"${newtask.id}"></button>
                                 </p>`;
 
     }}
@@ -46,8 +46,16 @@ cobox.addEventListener('dblclick', function(event) {
     if (event.target.classList.contains('delete-button')) {
         const para = event.target.closest('.container3');
         if (para) {
-            para.remove();
+            const checkbox=para.querySelector(".checkbox");
+            const id=checkbox.dataset.class;
+            info.forEach((event)=>{
+                if(event.id===id){
+                    info.splice(info.indexOf(event),1);
+                    localStorage.setItem("info",JSON.stringify(info));
+                }
+            })
 
+            para.remove();
         }
     }
 });
@@ -74,25 +82,19 @@ window.onload = info.forEach((item)=>{
                             <button class="completed-button" data-class="${item.id}">C</button>
                             <button class="checkbox" data-class="${item.id}"></button>
                         </p>`;
-})
 
-
-
-
-
-info.forEach((item) => {
-  if (item.hours >= dayjs().hour()) {
-    const container = item.target.closest(".container3");
+    if (item.hours <= dayjs().hour()) {
+        const container = document.querySelector(`.container3[data-class="${item.id}"]`);
     if (container) {
-      // if checkbox is inside container
-      const checkbox = container.querySelector('.checkbox');
-      
-      if (checkbox) {
-        checkbox.style.backgroundColor = "#6876";
+        const checkbox = container.querySelector('.checkbox');
+        if (checkbox) {
+            checkbox.style.backgroundColor = "red";
       }
     }
   }
-});
+
+})
+
 console.log(dayjs().hour());
 
 
