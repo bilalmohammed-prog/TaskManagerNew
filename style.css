@@ -48,7 +48,23 @@ body{
     z-index:75;
     font-family:"Bitcount Prop Single";
 }
-
+.endDay{
+    position:absolute;
+    top:196px;
+    left:400px;
+    border-radius:5px;
+    border:rgb(245, 255, 131) 3px solid;
+    background-color: rgb(245, 255, 131);
+    border:rgb(0, 0, 0) 2px solid;
+    font-size:14px;
+    z-index:75;
+    font-family:"Bitcount Prop Single";
+    width:100px;
+    height:100px;
+}
+.endDay:hover{
+    background-color: rgb(239, 255, 179);
+}
 .instructions{
     position:fixed;
     z-index:100;

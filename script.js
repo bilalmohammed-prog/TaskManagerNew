@@ -65,36 +65,62 @@ cobox.addEventListener('dblclick', function(event) {
         const container = event.target.closest('.container3');
         if (container) {
             const checkbox = container.querySelector('.checkbox');
-            if (checkbox) {
-                checkbox.style.backgroundColor = "#b6ffb3"; // Example: light green for completed
-            }
+            const id=checkbox.dataset.class;
+            info.forEach((item)=>{
+                if(item.id==id){
+                    checkbox.style.backgroundColor = "#b6ffb3"; // Example: light green for completed
+                    item["sta"] = "complete";
+                    localStorage.setItem("info",JSON.stringify(info));
+                    console.log(item);
+                }
+            })
         }
     }
 });             
+//why is complete not being saved?
 
 console.log(dayjs());
 
 
-window.onload = info.forEach((item)=>{
-    cobox.innerHTML += `<p class="container3" data-class="${item.id}">
-                            ${item.task} : ${item.startTime} to ${item.endTime}
-                            <button class="delete-button" data-class="${item.id}">D</button>
-                            <button class="completed-button" data-class="${item.id}">C</button>
-                            <button class="checkbox" data-class="${item.id}"></button>
-                        </p>`;
+window.onload = function () {
+  info.forEach((item) => {
+    cobox.innerHTML += `
+      <p class="container3" data-class="${item.id}">
+        ${item.task} : ${item.startTime} to ${item.endTime}
+        <button class="delete-button" data-class="${item.id}">D</button>
+        <button class="completed-button" data-class="${item.id}">C</button>
+        <button class="checkbox" data-class="${item.id}"></button>
+      </p>`;
 
+    // check if task is overdue
     if (item.hours <= dayjs().hour() && item.mins < dayjs().minute()) {
-        const container = document.querySelector(`.container3[data-class="${item.id}"]`);
-    if (container) {
+      const container = document.querySelector(`.container3[data-class="${item.id}"]`);
+      if (container) {
         const checkbox = container.querySelector('.checkbox');
         if (checkbox) {
-            checkbox.style.backgroundColor = "red";
+          checkbox.style.backgroundColor = "red";
+          item["sta"] = "incomplete";
+          console.log(item);
+          
+        }
       }
     }
-  }
+    
+    if (item.sta === "complete") {
+      const container = document.querySelector(`.container3[data-class="${item.id}"]`);
+      if (container) {
+        const checkbox = container.querySelector('.checkbox');
+        if (checkbox) {
+          checkbox.style.backgroundColor = "#b6ffb3"; // Example: light green for completed
+        }
+      }
+    }
+
+  });
+};
+
+//end day button
+const end=document.querySelector('.endDay');
+end.addEventListener("click",()=>{
 
 })
-
-console.log(dayjs().hour());
-
-
