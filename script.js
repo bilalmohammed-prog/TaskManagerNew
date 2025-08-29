@@ -27,11 +27,11 @@ function renderTasks() {
       </p>`;
 
     // check overdue
-    let overdue = false;
-    if (item.hours < dayjs().hour()) {
-      overdue = true;
+
+    if (item.hours < dayjs().hour() && item.sta) {
+      item.overdue = true;
     } else if (item.hours === dayjs().hour() && item.mins < dayjs().minute()) {
-      overdue = true;
+      item.overdue = true;
     }
 
     const container = document.querySelector(`.container3[data-class="${item.id}"]`);
@@ -40,7 +40,7 @@ function renderTasks() {
 
       if (item.sta === "complete") {
         checkbox.style.backgroundColor = "#b6ffb3"; // green
-      } else if (overdue) {
+      } else if (item.overdue === true && item.sta !== "complete") {
         checkbox.style.backgroundColor = "red";
         item.sta = "incomplete"; // mark overdue
       }
@@ -62,7 +62,7 @@ addEventListener('keydown', (event) => {
       let id = nanoid();
       let hours = parseInt(endTime.split(":")[0]);
       let mins = parseInt(endTime.split(":")[1]);
-
+      let overdue = false;
       let newtask = {
         id,
         startTime,
@@ -70,7 +70,8 @@ addEventListener('keydown', (event) => {
         hours,
         mins,
         task: task.value,
-        sta: "pending"
+        sta: "pending",
+        overdue
       };
 
       info.push(newtask);
@@ -92,16 +93,20 @@ cobox.addEventListener('dblclick', function(event) {
 });
 
 // ------------------- COMPLETE TASK -------------------
-cobox.addEventListener('dblclick', function(event) {
+cobox.addEventListener('click', function(event) {
   if (event.target.classList.contains('completed-button')) {
     const id = event.target.dataset.class;
-
+    
     info.forEach((item) => {
-      if (item.id === id) {
-        item.sta = "complete";
-      }
-    });
 
+        if (!item.overdue) {
+          if (item.id === id && item.sta === "pending") {
+            item.sta = "complete";
+          } else if (item.id === id && item.sta === "complete") {
+            item.sta = "pending";
+          }
+        }
+    });
     localStorage.setItem("info", JSON.stringify(info));
     renderTasks();
   }
