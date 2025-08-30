@@ -231,3 +231,19 @@ body{
     z-index:-1;
 
 }
+
+.notaskc{
+    position: absolute;
+    bottom: 0px;
+    left: 20px;
+}
+.popupscroll::-webkit-scrollbar {
+    width: 10px;
+    border-radius: 8px;
+}
+.popupscroll{
+    max-height: 200px;
+    max-width:300px;
+    overflow-y: scroll;
+    font-size: 18px;
+}

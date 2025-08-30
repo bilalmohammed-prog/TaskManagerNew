@@ -114,13 +114,10 @@ cobox.addEventListener('click', function(event) {
 
 // ------------------- END DAY BUTTON -------------------
 const end = document.querySelector('.endDay');
-end.addEventListener("click", () => {
-  // Example: clear all tasks at end of day
-  
-});
 
-console.log(dayjs());
-// generate html inside the popup
+
+
+
 
 //opening and closing popup window
 let popup=document.querySelector(".popup");
@@ -131,12 +128,29 @@ openpopup.addEventListener('click',()=>{
     popup.classList.add('active');
     overlay.style.zIndex=999;
     taskStatus.innerHTML="";
+    let c=0;
+    let t=0;
     info.forEach((item)=>{
+        t++;
         taskStatus.innerHTML+=`<p>${item.task}: ${item.sta}</p>`;
+        if (item.sta==="complete"){
+            c++;
+        }
     })
+    taskStatus.innerHTML+=`<p class=notaskc>No of task completed: ${c}/${t}</p>`;
 })
 let closepopup=document.querySelector(".cancel");
-closepopup.addEventListener("click",()=>{
+function closepopupf(){
     popup.classList.remove('active');
     overlay.style.zIndex=-1;
-})
+}
+closepopup.addEventListener("click",()=>{closepopupf()});
+
+//end_day_confirm button         should add AI evaluation
+const confirm=document.querySelector(".confirm");
+confirm.addEventListener("click", () => {
+    closepopupf()
+  info = [];
+  localStorage.setItem("info", JSON.stringify(info));
+  renderTasks();
+});
