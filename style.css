@@ -153,3 +153,81 @@ body{
     height:20px;
     background-color: white;
 }
+
+.popup{
+    position:fixed;
+    width:500px;
+    height:500px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    z-index:1000;
+    position:absolute;
+    border-radius:8px;
+    border:rgb(245, 255, 131) 3px solid;
+    background-color: rgb(245, 255, 131);
+    border:rgb(0, 0, 0) 3px solid;
+    font-size:20px;
+    font-family:"Bitcount Prop Single";
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    
+}
+.popup.active{
+    position:fixed;
+    width:500px;
+    height:500px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    z-index:1000;
+    position:absolute;
+    border-radius:8px;
+    border:rgb(245, 255, 131) 3px solid;
+    background-color: rgb(245, 255, 131);
+    border:rgb(0, 0, 0) 3px solid;
+    font-size:20px;
+    font-family:"Bitcount Prop Single";
+    opacity:1;
+    visibility: visible;
+}
+.confirm{
+    position: absolute;
+    bottom: 20px;
+    right: 16px;
+    background-color: rgb(68, 255, 136);
+    font-family:"Bitcount Prop Single";
+    border-radius:2px;
+    padding:5px;
+}
+.cancel{
+    position:absolute;
+    top: 16px;
+    right: 14px;
+    background-color: rgb(218, 62, 62);
+    padding:2px;
+    padding-left:5px;
+    padding-right:4px;
+    font-family:"Bitcount Prop Single";
+    border-radius:2px;
+    padding-left:7px;
+}
+.pt{
+    font-family:"Bitcount Prop Single";
+    font-size:20px;
+    color: black;
+    position:absolute;
+    top:20px;
+    font-weight: 450;
+}
+.overlay{
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    background:rgba(0,0,0,0.5);
+    position:fixed;
+    z-index:-1;
+
+}

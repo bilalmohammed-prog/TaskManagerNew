@@ -116,9 +116,27 @@ cobox.addEventListener('click', function(event) {
 const end = document.querySelector('.endDay');
 end.addEventListener("click", () => {
   // Example: clear all tasks at end of day
-  info = [];
-  localStorage.setItem("info", JSON.stringify(info));
-  renderTasks();
+  
 });
 
 console.log(dayjs());
+// generate html inside the popup
+
+//opening and closing popup window
+let popup=document.querySelector(".popup");
+let openpopup=document.querySelector(".endDay");
+let overlay=document.querySelector(".overlay");
+let taskStatus=document.querySelector(".taskStatus");
+openpopup.addEventListener('click',()=>{
+    popup.classList.add('active');
+    overlay.style.zIndex=999;
+    taskStatus.innerHTML="";
+    info.forEach((item)=>{
+        taskStatus.innerHTML+=`<p>${item.task}: ${item.sta}</p>`;
+    })
+})
+let closepopup=document.querySelector(".cancel");
+closepopup.addEventListener("click",()=>{
+    popup.classList.remove('active');
+    overlay.style.zIndex=-1;
+})
