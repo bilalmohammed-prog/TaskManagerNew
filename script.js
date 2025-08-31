@@ -14,15 +14,15 @@ let cobox = document.querySelector('.cobox');
 
 // ------------------- RENDER FUNCTION -------------------
 function renderTasks() {
-  cobox.innerHTML = ""; // clear
+  cobox.innerHTML = "<summary>Task : Time</summary>"; // clear
 
   info.forEach((item) => {
     // add HTML
     cobox.innerHTML += `
       <p class="container3" data-class="${item.id}">
         ${item.task} : ${item.startTime} to ${item.endTime}
-        <button class="delete-button" data-class="${item.id}">D</button>
-        <button class="completed-button" data-class="${item.id}">C</button>
+        <button class="delete-button" data-class="${item.id}">X</button>
+        <button class="completed-button" data-class="${item.id}">/</button>
         <button class="checkbox" data-class="${item.id}"></button>
       </p>`;
 
@@ -39,9 +39,9 @@ function renderTasks() {
       const checkbox = container.querySelector('.checkbox');
 
       if (item.sta === "complete") {
-        checkbox.style.backgroundColor = "#b6ffb3"; // green
+        checkbox.style.backgroundColor = "rgb(68, 255, 136)"; // green
       } else if (item.overdue === true && item.sta !== "complete") {
-        checkbox.style.backgroundColor = "red";
+        checkbox.style.backgroundColor = "rgb(218, 62, 62)";
         item.sta = "incomplete"; // mark overdue
       }
     }

@@ -121,28 +121,31 @@ body{
 .delete-button {
     width:20px;
     height:20px;
-    background-color: white;
+    background-color:rgb(255, 137, 137);
     cursor: pointer;
     position:absolute;
-    right:-160px;
+    right:-150px;
     top:-5px;
+    padding:2px;
 }
 .completed-button {
     width:20px;
     height:20px;
-    background-color: white;
+    background-color: rgb(149, 255, 188);
     cursor: pointer;
     position:absolute;
-    right:-130px;
+    right:-120px;
     top:-5px;
+    padding:2px;
+    padding-bottom: 2px;
 }
 
 .delete-button:hover {
-    background-color: darkred;
+    background-color: rgb(218, 62, 62);
 
 }
 .completed-button:hover{
-    background-color: darkred;
+    background-color: rgb(68, 255, 136);
 
 }
 .checkbox{
