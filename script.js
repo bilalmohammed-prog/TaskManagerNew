@@ -1,4 +1,3 @@
-// random ID generator
 let a = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
 export let nanoid = (e = 21) => {
   let t = "", r = crypto.getRandomValues(new Uint8Array(e));
@@ -36,12 +35,12 @@ let functions = {
         </p>`;
 
       // check overdue (only if not complete)
-      if (item.sta !== "complete") {
+
         const nowH = dayjs().hour();
         const nowM = dayjs().minute();
         if (item.hours < nowH) item.overdue = true;
         else if (item.hours === nowH && item.mins < nowM) item.overdue = true;
-      }
+
 
       const container = document.querySelector(`.container3[data-class="${item.id}"]`);
       if (container) {
@@ -147,4 +146,3 @@ cobox.addEventListener('click', functions.completeTask);
 openpopup.addEventListener('click', functions.popupGenerator);
 closepopup.addEventListener("click", functions.closepopupf);
 confirm.addEventListener("click", functions.endDayConfirm);
-
