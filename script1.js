@@ -146,5 +146,3 @@ cobox.addEventListener('click', (event) => newfunctions.completeTask(event));
 openpopup.addEventListener('click', (event) => newfunctions.popupGenerator(event));
 closepopup.addEventListener("click", (event) => newfunctions.closepopupf(event));
 confirm.addEventListener("click", (event) => newfunctions.endDayConfirm(event));
-
-//confirm button and correct after time up broken
