@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "axios": "^1.12.2",
+    "dotenv": "^17.2.2",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10"
+  },
+  "name": "ai",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "ai.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bilalmohammed-prog/project-Task_Manager-preAIevaluation.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bilalmohammed-prog/project-Task_Manager-preAIevaluation/issues"
+  },
+  "homepage": "https://github.com/bilalmohammed-prog/project-Task_Manager-preAIevaluation#readme"
+}
