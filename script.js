@@ -6,6 +6,8 @@ export const nanoid = (e = 21) => {
   return t;
 };
 
+
+
 // ------------------- TASK MANAGER CLASS -------------------
 class TaskManager {
   constructor() {
@@ -13,6 +15,8 @@ class TaskManager {
     this.info = JSON.parse(localStorage.getItem("info")) || [];
 
     // DOM elements
+    this.reason_popup = document.querySelector(".reason_popup");
+    this.rcancel = document.querySelector(".rcancel");
     this.task = document.querySelector('.task');
     this.time = document.querySelector('.time');
     this.cobox = document.querySelector('.cobox');
@@ -36,6 +40,27 @@ class TaskManager {
     this.openpopup.addEventListener('click', () => this.popupGenerator());
     this.closepopup.addEventListener("click", () => this.closepopupf());
     this.confirm.addEventListener("click", () => this.endDayConfirm());
+    document.addEventListener("click", (e) => {
+  const button = e.target.closest(".reason_button");
+  if (button) {
+    
+    this.openReasonPopup();
+
+    const buttonId = button.id;
+    const reasonInput = this.reason_popup.querySelector(".reason_input");
+
+    if (reasonInput) {
+      reasonInput.dataset.buttonId = buttonId;
+      console.log("ReasonInput linked to:", reasonInput.dataset.buttonId);
+    }
+  }
+
+  if (e.target.classList.contains("rcancel")) {
+    this.closeReasonPopup();
+  }
+});
+
+
   }
 
   // ------------------- CORE METHODS -------------------
@@ -49,7 +74,9 @@ class TaskManager {
           <button class="delete-button" data-class="${item.id}">X</button>
           <button class="completed-button" data-class="${item.id}">/</button>
           <button class="checkbox" data-class="${item.id}"></button>
-        </p>`;
+        </p>
+        
+        `;
 
       // check overdue
       const nowH = dayjs().hour();
@@ -78,7 +105,7 @@ class TaskManager {
   generateTask(event) {
     if (event.key === 'Enter' && this.task.value && this.time.value) {
       let [startTime, endTime] = this.time.value.split("-").map(s => s.trim());
-      let id = nanoid();
+      let id = nanoid();//setting id for each task
       let [hStr, mStr] = endTime.split(":");
       let hours = parseInt(hStr, 10);
       let mins = parseInt(mStr, 10);
@@ -130,7 +157,9 @@ class TaskManager {
     let c = 0, t = 0;
     this.info.forEach((item) => {
       t++;
-      this.taskStatus.innerHTML += `<p>${item.task}: ${item.sta}</p>`;
+      this.taskStatus.innerHTML += `<p>${item.task}: ${item.sta}
+      <button class="reason_button" id="${item.id}">r</button>
+      </p>`;
       if (item.sta === "complete") c++;
     });
     this.taskStatus.innerHTML += `<p class="notaskc">No of tasks completed: ${c}/${t}</p>`;
@@ -148,6 +177,14 @@ class TaskManager {
     this.renderTasks();
   }
 
+  closeReasonPopup() {
+    this.reason_popup.classList.remove('active');
+  }
+
+  openReasonPopup(){
+    this.reason_popup.classList.add('active');
+  }
+
   // ------------------- UTIL -------------------
   save() {
     localStorage.setItem("info", JSON.stringify(this.info));
@@ -156,3 +193,5 @@ class TaskManager {
 
 // ------------------- INIT -------------------
 const app = new TaskManager();
+
+;//to test if we can access button id from dataset

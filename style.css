@@ -250,3 +250,84 @@ body{
     overflow-y: scroll;
     font-size: 18px;
 }
+/*reason button*/
+.reason_button{
+    width:20px;
+    height:20px;
+    background-color: rgb(135, 206, 250);
+    cursor: pointer;
+}
+
+.reason_popup{
+    position:fixed;
+    width:100px;
+    height:100px;
+    top:82px;
+    right:100px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    z-index:1001;
+    position:absolute;
+    border-radius:8px;
+    border:rgb(245, 255, 131) 3px solid;
+    background-color: rgb(245, 255, 131);
+    border:rgb(0, 0, 0) 3px solid;
+    font-size:20px;
+    font-family:"Bitcount Prop Single";
+    visibility: hidden;
+    opacity: 0;
+}
+
+.reason_popup.active{
+    position:fixed;
+    width:300px;
+    height:200px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    z-index:1001;
+    position:absolute;
+    border-radius:8px;
+    border:rgb(245, 255, 131) 3px solid;
+    background-color: rgb(245, 255, 131);
+    border:rgb(0, 0, 0) 2px solid;
+    font-size:20px;
+    font-family:"Bitcount Prop Single";
+    opacity:1;
+    visibility: visible;
+}
+
+.reason_input{
+    width:250px;
+    height:80px;
+    padding-right:10px;
+    padding-left:10px;
+    border-radius:5px;
+    background-color: rgb(245, 255, 131);
+    font-size:16px;
+    font-family:"Bitcount Prop Single";
+}
+
+.rconfirm{
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background-color: rgb(68, 255, 136);
+    font-family:"Bitcount Prop Single";
+    border-radius:2px;
+    padding:5px;
+}
+.rcancel{
+    position:absolute;
+    top: 15px;
+    right: 15px;
+    background-color: rgb(218, 62, 62);
+    padding:2px;
+    padding-left:5px;
+    padding-right:4px;
+    font-family:"Bitcount Prop Single";
+    border-radius:2px;
+    padding-left:7px;
+}
+
