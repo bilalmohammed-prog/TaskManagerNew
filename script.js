@@ -40,7 +40,7 @@ class TaskManager {
     this.openpopup.addEventListener('click', () => this.popupGenerator());
     this.closepopup.addEventListener("click", () => this.closepopupf());
     this.confirm.addEventListener("click", () => this.endDayConfirm());
-    document.addEventListener("click", (e) => {
+    document.addEventListener("click", async(e) => {
   const button = e.target.closest(".reason_button");
   if (button) {
     
@@ -56,6 +56,33 @@ class TaskManager {
   }
 
   if (e.target.classList.contains("rcancel")) {
+    this.closeReasonPopup();
+  }
+  if (e.target.classList.contains("rconfirm")){
+    const reasonInput = this.reason_popup.querySelector(".reason_input");
+    const reason = reasonInput.value.trim();
+    const buttonId = reasonInput.dataset.buttonId;
+    
+
+    try {
+      const res = await fetch("http://localhost:5500/evaluate-reason", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }) // sending only the reason
+      });
+      console.log(res)
+      const data = await res.json();
+      console.log("AI evaluation:", data.evaluation);
+
+      alert(`AI evaluation: ${data.evaluation}`);
+      reasonInput.value = ""; // clear input
+    } catch (err) {
+      console.error("Error:", err);
+    }
+
+
+
+    reasonInput.value="";
     this.closeReasonPopup();
   }
 });
