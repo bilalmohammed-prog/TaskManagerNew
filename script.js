@@ -42,6 +42,39 @@ class TaskManager {
     this.confirm.addEventListener("click", () => this.endDayConfirm());
     document.addEventListener("click", async(e) => {
   const button = e.target.closest(".reason_button");
+
+//barrier
+let reasonInput = this.reason_popup.querySelector(".reason_input");
+    let reason = reasonInput.value.trim();
+    let buttonId = reasonInput.dataset.buttonId;
+reasonInput.addEventListener('keydown', async (event) => {
+      if (event.key === 'Enter') {
+        let reasonInput = this.reason_popup.querySelector(".reason_input");
+    let reason = reasonInput.value.trim();
+    let buttonId = reasonInput.dataset.buttonId;
+    reasonInput.value = "";
+        try {
+          const res = await fetch("http://localhost:5500/evaluate-reason", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reason })
+          });
+          console.log(res)
+          const data = await res.json();
+          console.log("AI evaluation:", data.evaluation);
+
+          alert(`AI evaluation: ${data.evaluation}`);
+          reasonInput.value = ""; // clear input
+        } catch (err) {
+          console.error("Error:", err);
+        }
+
+        
+        
+      }
+    });
+//barrier
+
   if (button) {
     
     this.openReasonPopup();
@@ -59,10 +92,15 @@ class TaskManager {
     this.closeReasonPopup();
   }
   if (e.target.classList.contains("rconfirm")){
-    const reasonInput = this.reason_popup.querySelector(".reason_input");
-    const reason = reasonInput.value.trim();
-    const buttonId = reasonInput.dataset.buttonId;
+    let reasonInput = this.reason_popup.querySelector(".reason_input");
+    let reason = reasonInput.value.trim();
+    let buttonId = reasonInput.dataset.buttonId;
+    reasonInput.value = "";
     
+    //barrier
+     // Only add once per popup open
+  
+//barrier
 
     try {
       const res = await fetch("http://localhost:5500/evaluate-reason", {
@@ -82,8 +120,8 @@ class TaskManager {
 
 
 
-    reasonInput.value="";
-    this.closeReasonPopup();
+    
+    
   }
 });
 
