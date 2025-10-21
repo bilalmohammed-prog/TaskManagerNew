@@ -119,10 +119,11 @@ reasonInput.addEventListener('keydown', async (event) => {
       console.error("Error:", err);
     }
 
+  // Assume buttonId corresponds to a task id in this.info array
 
 
-    
-    
+
+
   }
 });
 
@@ -168,15 +169,14 @@ reasonInput.addEventListener('keydown', async (event) => {
     this.save();
   }
 
-  generateTask(event) {
+  async generateTask(event) {
     if (event.key === 'Enter' && this.task.value && this.time.value) {
       let [startTime, endTime] = this.time.value.split("-").map(s => s.trim());
       let id = nanoid();//setting id for each task
       let [hStr, mStr] = endTime.split(":");
       let hours = parseInt(hStr, 10);
       let mins = parseInt(mStr, 10);
-
-      this.info.push({
+      let obj={
         id,
         startTime,
         endTime,
@@ -185,13 +185,40 @@ reasonInput.addEventListener('keydown', async (event) => {
         task: this.task.value,
         sta: "pending",
         overdue: false
-      });
+      }
+      this.info.push(obj);
 
       this.task.value = "";
       this.time.value = "";
       this.save();
       this.renderTasks();
+
+      const taskObj = this.info.find(item => item.id === obj.id);
+console.log("TaskObj found:", taskObj);
+if (taskObj) {
+  try {
+    const res = await fetch("http://localhost:5500/addTask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        task: taskObj.task,
+        time: `${taskObj.startTime} - ${taskObj.endTime}`,
+        status: taskObj.sta,
+        id: taskObj.id
+      })
+    });
+    const result = await res.json();
+    console.log(result.message || JSON.stringify(result));
+  } catch (err) {
+    console.error("Error adding task to DB:", err);
+  }
+} else {
+  console.error("Task not found for id", buttonId);
+}
     }
+
+
+
   }
 
   deleteTask(event) {

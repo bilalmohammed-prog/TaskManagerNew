@@ -4,19 +4,56 @@ dotenv.config();//loads all environment var from .env
 import rules from './rules.js';
 import express from "express";
 import bodyParser from "body-parser";
-
-//mongoDB
-
-import mongoose from "mongoose";
-
-//mongoDB
-
+import cors from "cors";
 const app = express();
+
 app.use(bodyParser.json());
 
-import cors from "cors";
+
 app.use(cors()); // allow all origins for testing
 app.use(express.json());
+
+//mongoDB
+import mongoose from "mongoose";
+//Connection
+
+mongoose.connect("mongodb://127.0.0.1:27017/taskManagerDB")
+.then(()=>{
+    console.log("Connected to MongoDB");
+})
+.catch((err)=>{
+    console.log("Error connecting to MongoDB:",err);
+})
+
+//Schema
+const userSchema=new mongoose.Schema({
+    task:{type:String,required:true},
+    time:{type:String,required:true},
+    status:{type:String,required:true}
+})
+
+const User = new mongoose.model("user",userSchema);
+
+app.post("/addTask",async(req,res)=>{
+    try{const body=req.body;
+    const result=await User.create({
+        task:body.task,
+        time:body.time,
+        status:body.status
+    })
+    console.log("result:",result);
+    return res.status(200).json({message:"Task added successfully",data:result});
+    } catch(err){
+        console.log("Error adding task:",err);
+        return res.status(500).json({message:"Error adding task"});
+    }
+})
+
+
+//mongoDB
+
+
+
 
 
 const token = process.env.deepseek_key;
