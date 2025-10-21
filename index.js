@@ -5,6 +5,12 @@ import rules from './rules.js';
 import express from "express";
 import bodyParser from "body-parser";
 
+//mongoDB
+
+import mongoose from "mongoose";
+
+//mongoDB
+
 const app = express();
 app.use(bodyParser.json());
 
@@ -39,8 +45,8 @@ app.post("/evaluate-reason", async (req, res) => {
   try {
     const { reason } = req.body;
     if (!reason) return res.status(400).json({ error: "Reason required" });
-
-    const evaluation = await main(reason) || "No evaluation returned";
+    main(rules);
+    const evaluation = await main(reason);
     res.json({ evaluation });
   } catch (err) {
     console.error(err);

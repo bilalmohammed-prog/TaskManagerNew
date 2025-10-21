@@ -40,15 +40,13 @@ class TaskManager {
     this.openpopup.addEventListener('click', () => this.popupGenerator());
     this.closepopup.addEventListener("click", () => this.closepopupf());
     this.confirm.addEventListener("click", () => this.endDayConfirm());
-    document.addEventListener("click", async(e) => {
-  const button = e.target.closest(".reason_button");
-
 //barrier
 let reasonInput = this.reason_popup.querySelector(".reason_input");
     let reason = reasonInput.value.trim();
     let buttonId = reasonInput.dataset.buttonId;
 reasonInput.addEventListener('keydown', async (event) => {
       if (event.key === 'Enter') {
+        event.preventDefault();
         let reasonInput = this.reason_popup.querySelector(".reason_input");
     let reason = reasonInput.value.trim();
     let buttonId = reasonInput.dataset.buttonId;
@@ -59,12 +57,10 @@ reasonInput.addEventListener('keydown', async (event) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ reason })
           });
-          console.log(res)
+          
           const data = await res.json();
+          console.log(res)
           console.log("AI evaluation:", data.evaluation);
-
-          alert(`AI evaluation: ${data.evaluation}`);
-          reasonInput.value = ""; // clear input
         } catch (err) {
           console.error("Error:", err);
         }
@@ -74,6 +70,11 @@ reasonInput.addEventListener('keydown', async (event) => {
       }
     });
 //barrier
+
+    document.addEventListener("click", async(e) => {
+  const button = e.target.closest(".reason_button");
+
+
 
   if (button) {
     
