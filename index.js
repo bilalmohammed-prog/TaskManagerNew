@@ -29,7 +29,8 @@ mongoose.connect("mongodb://127.0.0.1:27017/taskManagerDB")
 const userSchema=new mongoose.Schema({
     task:{type:String,required:true},
     time:{type:String,required:true},
-    status:{type:String,required:true}
+    status:{type:String,required:true},
+    id:{type:String,required:true}
 })
 
 const User = new mongoose.model("user",userSchema);
@@ -39,7 +40,8 @@ app.post("/addTask",async(req,res)=>{
     const result=await User.create({
         task:body.task,
         time:body.time,
-        status:body.status
+        status:body.status,
+        id:body.id
     })
     console.log("result:",result);
     return res.status(200).json({message:"Task added successfully",data:result});
@@ -49,6 +51,24 @@ app.post("/addTask",async(req,res)=>{
     }
 })
 
+
+
+app.delete("/deleteTask", async (req, res) => {
+    let body= req.body;
+  const taskId = body.id; // get task id from request body
+  if (!taskId) {
+    return res.status(400).json({ message: "Task ID is required" });
+  }
+  try {
+    
+    await User.deleteOne({ id: taskId });
+   
+    res.status(200).json({ message: "Task deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+});
 
 //mongoDB
 

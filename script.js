@@ -224,11 +224,30 @@ if (taskObj) {
   deleteTask(event) {
     if (event.target.classList.contains('delete-button')) {
       const id = event.target.dataset.class;
-      this.info = this.info.filter(item => item.id !== id);
+      
+
+      const taskObj = this.info.find(item => item.id === id); // get this dynamically
+      console.log("TaskObj to delete:", taskObj);
+      console.log(id);
+      if (!taskObj) {
+  console.error("Task not found with id:", id);
+  return; // or handle error appropriately
+}
+const taskId = taskObj.id
+fetch("http://localhost:5500/deleteTask", {
+  method: "DELETE",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ id: taskId })
+})
+  .then(res => res.json())
+  .then(data => {
+    console.log(data.message || JSON.stringify(data));
+    this.info = this.info.filter(item => item.id !== id);
       this.save();
       this.renderTasks();
-    }
-  }
+  })
+  .catch(err => console.error("Error deleting task:", err));    }
+}
 
   completeTask(event) {
     if (event.target.classList.contains('completed-button')) {
