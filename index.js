@@ -27,10 +27,12 @@ mongoose.connect("mongodb://127.0.0.1:27017/taskManagerDB")
 
 //Schema
 const userSchema=new mongoose.Schema({
+  id:{type:String,required:true},
     task:{type:String,required:true},
-    time:{type:String,required:true},
+    startTime:{type:String,required:true},
+    endTime:{type:String,required:true},
     status:{type:String,required:true},
-    id:{type:String,required:true}
+  
 })
 
 const User = new mongoose.model("user",userSchema);
@@ -38,10 +40,12 @@ const User = new mongoose.model("user",userSchema);
 app.post("/addTask",async(req,res)=>{
     try{const body=req.body;
     const result=await User.create({
+      id:body.id,
         task:body.task,
-        time:body.time,
+        startTime:body.startTime,
+        endTime:body.endTime,
         status:body.status,
-        id:body.id
+        
     })
     console.log("result:",result);
     return res.status(200).json({message:"Task added successfully",data:result});
@@ -69,6 +73,30 @@ app.delete("/deleteTask", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 });
+
+// ...existing code...
+app.put("/updateTask", async (req, res) => {
+  try {
+    const { id, task, startTime, endTime, status } = req.body;
+
+    // update the document and return the updated document
+    const updated = await User.findOneAndUpdate(
+      { id },
+      { task, startTime, endTime, status },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    return res.status(200).json({ message: "Task updated successfully", data: updated });
+  } catch (err) {
+    console.error("Error updating task:", err);
+    return res.status(500).json({ message: "Internal Server Error", error: err.message });
+  }
+});
+// ...existing code...
 
 //mongoDB
 

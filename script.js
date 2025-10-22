@@ -37,6 +37,7 @@ class TaskManager {
     window.addEventListener('keydown', (e) => this.generateTask(e));
     this.cobox.addEventListener('dblclick', (e) => this.deleteTask(e));
     this.cobox.addEventListener('click', (e) => this.completeTask(e));
+    this.cobox.addEventListener('click', (e) => this.updateTask(e));
     this.openpopup.addEventListener('click', () => this.popupGenerator());
     this.closepopup.addEventListener("click", () => this.closepopupf());
     this.confirm.addEventListener("click", () => this.endDayConfirm());
@@ -140,6 +141,7 @@ reasonInput.addEventListener('keydown', async (event) => {
           ${item.task} : ${item.startTime} to ${item.endTime}
           <button class="delete-button" data-class="${item.id}">X</button>
           <button class="completed-button" data-class="${item.id}">/</button>
+          <button class="update-button" data-class="${item.id}">U</button>
           <button class="checkbox" data-class="${item.id}"></button>
         </p>
         
@@ -201,10 +203,11 @@ if (taskObj) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        id: taskObj.id,
         task: taskObj.task,
-        time: `${taskObj.startTime} - ${taskObj.endTime}`,
-        status: taskObj.sta,
-        id: taskObj.id
+        startTime: taskObj.startTime,
+        endTime: taskObj.endTime,
+        status: taskObj.sta
       })
     });
     const result = await res.json();
@@ -262,6 +265,138 @@ fetch("http://localhost:5500/deleteTask", {
     }
   }
 
+  //update
+  // ...existing code...
+  updateTask(event) {
+    // support clicks on child elements
+    const btn = event.target instanceof Element && event.target.closest('.update-button');
+    if (!btn) return;
+
+    const container = btn.closest('.container3');
+    if (!container) return;
+
+    const id = container.dataset.class;
+    const item = this.info.find(i => i.id === id);
+    if (!item) return;
+
+    // avoid opening multiple editors on same item
+    if (container.querySelector('.edit-input') || container.querySelector('.edit-start') || container.querySelector('.edit-end')) return;
+
+    // remove leading text nodes (the task/time text) so we can insert the inputs
+    Array.from(container.childNodes).forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) container.removeChild(node);
+    });
+
+    // create inline inputs: one for task, one for start time, one for end time
+    const textInput = document.createElement('input');
+    textInput.className = 'edit-input';
+    textInput.value = item.task;
+    textInput.setAttribute('aria-label', 'Edit task');
+
+    const startInput = document.createElement('input');
+    startInput.className = 'edit-start';
+    startInput.value = item.startTime;
+    startInput.setAttribute('aria-label', 'Edit start time (HH:MM)');
+
+    const endInput = document.createElement('input');
+    endInput.className = 'edit-end';
+    endInput.value = item.endTime;
+    endInput.setAttribute('aria-label', 'Edit end time (HH:MM)');
+
+    // insert inputs before the first button so buttons remain visible
+    const firstButton = container.querySelector('button');
+    container.insertBefore(textInput, firstButton || null);
+    container.insertBefore(startInput, firstButton || null);
+    container.insertBefore(endInput, firstButton || null);
+
+    // focus the task input first
+    textInput.focus();
+    textInput.select();
+
+    const timeRegex = /^([01]?\d|2[0-3]):([0-5]\d)$/;
+
+    const saveChanges = async () => {
+      const newTask = textInput.value.trim();
+      const newStart = startInput.value.trim();
+      const newEnd = endInput.value.trim();
+
+      if (newTask) item.task = newTask;
+
+      // validate and apply times separately
+      if (timeRegex.test(newStart)) {
+        item.startTime = newStart;
+      }
+      if (timeRegex.test(newEnd)) {
+        item.endTime = newEnd;
+        const [hStr, mStr] = newEnd.split(':');
+        item.hours = parseInt(hStr, 10);
+        item.mins = parseInt(mStr, 10);
+      }
+
+      // recompute overdue
+      const nowH = dayjs().hour();
+      const nowM = dayjs().minute();
+      item.overdue = (item.hours < nowH) || (item.hours === nowH && item.mins < nowM);
+
+      // save locally and re-render
+      this.save();
+      this.renderTasks();
+
+      // also persist updated task to backend
+      try {
+        const res = await fetch("http://localhost:5500/updateTask", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: item.id,
+            task: item.task,
+            startTime: item.startTime,
+            endTime: item.endTime,
+            status: item.sta
+          })
+        });
+        const result = await res.json();
+        console.log("Update response:", result.message || result);
+      } catch (err) {
+        console.error("Error updating task on server:", err);
+      }
+    };
+
+    const cancelChanges = () => {
+      this.renderTasks();
+    };
+
+    const keyHandler = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveChanges();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelChanges();
+      }
+    };
+
+    textInput.addEventListener('keydown', keyHandler);
+    startInput.addEventListener('keydown', keyHandler);
+    endInput.addEventListener('keydown', keyHandler);
+
+    // When focus leaves both time & task inputs, save (small timeout to allow switching between them)
+    const blurCheck = () => {
+      setTimeout(() => {
+        const active = document.activeElement;
+        if (active !== textInput && active !== startInput && active !== endInput) {
+          saveChanges();
+        }
+      }, 120);
+    };
+
+    textInput.addEventListener('blur', blurCheck);
+    startInput.addEventListener('blur', blurCheck);
+    endInput.addEventListener('blur', blurCheck);
+  }
+ // ...existing code...
+
+ //update end
   popupGenerator() {
     this.popup.classList.add('active');
     this.overlay.style.zIndex = 999;
@@ -304,6 +439,39 @@ fetch("http://localhost:5500/deleteTask", {
 }
 
 // ------------------- INIT -------------------
+// ...existing code...
 const app = new TaskManager();
 
-;//to test if we can access button id from dataset
+// reload on device minute change (fires at the next exact minute boundary, then every minute).
+// skips reload when user is actively typing in an input/textarea or an editable element
+// ...existing code...
+// reload on device minute change (fires at the next exact minute boundary, then every minute).
+(function scheduleMinuteReload() {
+  let timeoutId = null;
+
+  const scheduleNext = () => {
+    const now = new Date();
+    const msUntilNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+    timeoutId = setTimeout(onBoundary, msUntilNextMinute);
+  };
+
+  const onBoundary = () => {
+    const active = document.activeElement;//returns dom elemtent that is currently focused
+    const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+    const anyPopupActive = !!document.querySelector('.popup.active, .reason_popup.active');
+
+    if (!isTyping && !anyPopupActive) {
+      location.reload();
+    }
+    scheduleNext();
+  };
+
+  scheduleNext();
+
+  // optional: expose cancel if needed for debugging
+  window.cancelMinuteReload = () => {
+    if (timeoutId) clearTimeout(timeoutId);
+  };
+})();
+// first it estimates how much time before min is over. then it checks again but the default will always be 60 seconds
+// then it reloads

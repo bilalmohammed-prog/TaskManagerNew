@@ -140,6 +140,18 @@ body{
     padding-bottom: 2px;
 }
 
+.update-button {
+    width:20px;
+    height:20px;
+    background-color: rgb(135, 206, 250);
+    cursor: pointer;
+    position:absolute;
+    right:-90px;
+    top:-5px;
+    padding:2px;
+    padding-bottom: 2px;
+}
+
 .delete-button:hover {
     background-color: rgb(218, 62, 62);
 
@@ -148,9 +160,13 @@ body{
     background-color: rgb(68, 255, 136);
 
 }
+.update-button:hover{
+    background-color: rgb(88, 180, 255);
+}
+
 .checkbox{
     position:absolute;
-    right:-80px;
+    right:-60px;
     top:-5px;
     width:20px;
     height:20px;
