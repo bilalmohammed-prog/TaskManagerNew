@@ -60,8 +60,8 @@ reasonInput.addEventListener('keydown', async (event) => {
           });
           
           const data = await res.json();
-          console.log(res)
-          console.log("AI evaluation:", data.evaluation);
+          let AIp=document.querySelector(".AIp");
+          AIp.innerText = data.evaluation;
         } catch (err) {
           console.error("Error:", err);
         }
@@ -112,9 +112,8 @@ reasonInput.addEventListener('keydown', async (event) => {
       });
       console.log(res)
       const data = await res.json();
-      console.log("AI evaluation:", data.evaluation);
-
-      alert(`AI evaluation: ${data.evaluation}`);
+      let AIp=document.querySelector(".AIp");
+          AIp.innerText = data.evaluation;
       reasonInput.value = ""; // clear input
     } catch (err) {
       console.error("Error:", err);
@@ -278,7 +277,8 @@ fetch("http://localhost:5500/deleteTask", {
     const id = container.dataset.class;
     const item = this.info.find(i => i.id === id);
     if (!item) return;
-
+    if (item.sta === "complete") return; // do not allow edits on completed tasks
+    if (item.overdue) return; // do not allow edits on overdue tasks
     // avoid opening multiple editors on same item
     if (container.querySelector('.edit-input') || container.querySelector('.edit-start') || container.querySelector('.edit-end')) return;
 
@@ -305,22 +305,23 @@ fetch("http://localhost:5500/deleteTask", {
 
     // insert inputs before the first button so buttons remain visible
     const firstButton = container.querySelector('button');
-    container.insertBefore(textInput, firstButton || null);
-    container.insertBefore(startInput, firstButton || null);
+    container.insertBefore(textInput, firstButton || null);//so para stays in place and search is under
+    container.insertBefore(startInput, firstButton || null);//parentNode.insertBefore(newNode, referenceNode);
+
     container.insertBefore(endInput, firstButton || null);
 
     // focus the task input first
     textInput.focus();
     textInput.select();
 
-    const timeRegex = /^([01]?\d|2[0-3]):([0-5]\d)$/;
+    const timeRegex = /^([01]?\d|2[0-3]):([0-5]\d)$/;//checks for a valid input of time
 
     const saveChanges = async () => {
       const newTask = textInput.value.trim();
       const newStart = startInput.value.trim();
       const newEnd = endInput.value.trim();
 
-      if (newTask) item.task = newTask;
+      if (newTask) item.task = newTask;//testing the condition
 
       // validate and apply times separately
       if (timeRegex.test(newStart)) {
@@ -417,12 +418,33 @@ fetch("http://localhost:5500/deleteTask", {
     this.overlay.style.zIndex = -1;
   }
 
-  endDayConfirm() {
-    this.closepopupf();
-    this.info = [];
-    this.save();
-    this.renderTasks();
-  }
+ endDayConfirm() {
+  const title = prompt("Enter the title for the day");
+  if (!title) return;
+
+  fetch("http://localhost:5500/endDay", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title }) // only sending title
+  })
+  
+  .then(data => {
+    if (data) {
+      console.log("Day ended successfully");
+
+      // Optional: reset frontend data
+      this.info = [];
+      this.save();
+      this.renderTasks();
+      this.closepopupf();
+    } else {
+      console.error("Failed to end the day:", data.error);
+    }
+  })
+  .catch(error => {
+    console.error("Error ending the day:", error);
+  });
+}
 
   closeReasonPopup() {
     this.reason_popup.classList.remove('active');

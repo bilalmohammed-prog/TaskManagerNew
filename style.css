@@ -186,7 +186,7 @@ body{
     border:rgb(245, 255, 131) 3px solid;
     background-color: rgb(245, 255, 131);
     border:rgb(0, 0, 0) 3px solid;
-    font-size:20px;
+    font-size:18px;
     font-family:"Bitcount Prop Single";
     visibility: hidden;
     opacity: 0;
@@ -203,9 +203,10 @@ body{
     z-index:1000;
     position:absolute;
     border-radius:8px;
-    border:rgb(245, 255, 131) 3px solid;
+    
     background-color: rgb(245, 255, 131);
     border:rgb(0, 0, 0) 3px solid;
+    font-weight: 500;
     font-size:20px;
     font-family:"Bitcount Prop Single";
     opacity:1;
@@ -234,10 +235,10 @@ body{
 }
 .pt{
     font-family:"Bitcount Prop Single";
-    font-size:20px;
+    font-size:22px;
     color: black;
     position:absolute;
-    top:20px;
+    top:10px;
     font-weight: 450;
 }
 .overlay{
@@ -275,11 +276,11 @@ body{
 }
 
 .reason_popup{
-    position:fixed;
+    position:absolute;
     width:100px;
     height:100px;
-    top:82px;
-    right:100px;
+    top:0px;
+    right:-400px;
     display:flex;
     justify-content: center;
     align-items: center;
@@ -347,3 +348,40 @@ body{
     padding-left:7px;
 }
 
+.AIeval{
+    position:absolute;
+    bottom:0px;
+    left:-350px;
+    width:300px;
+    height:500px;
+    background-color: rgb(245, 255, 131);
+    max-height:500px;
+    border-radius:10px;
+    z-index:2000;
+    overflow-y: scroll;
+}
+.AIh{
+    font-family:"Bitcount Prop Single";
+    font-size:22px;
+    color: black;
+    position:absolute;
+    top:10px;
+    right:68px;
+    font-weight: 450;
+    
+}
+.AIp{
+    font-family:"Bitcount Prop Single";
+    font-size:18px;
+    color: black;
+    position:absolute;
+    top:50px;
+    left:15px;
+    font-weight: 450;
+    max-width: 280px;
+
+}
+.AIeval::-webkit-scrollbar {
+    width: 10px;
+    border-radius: 8px;
+}

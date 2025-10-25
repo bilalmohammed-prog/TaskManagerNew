@@ -7,6 +7,11 @@ import bodyParser from "body-parser";
 import cors from "cors";
 const app = express();
 
+
+const uri = "mongodb://127.0.0.1:27017";
+
+
+
 app.use(bodyParser.json());
 
 
@@ -35,16 +40,25 @@ const userSchema=new mongoose.Schema({
   
 })
 
-const User = new mongoose.model("user",userSchema);
+const User = new mongoose.model("users",userSchema);
+
+let currentCollection = 'users';
+function getModel() {
+  if (mongoose.models[currentCollection]) {
+    return mongoose.models[currentCollection];
+  }
+  return mongoose.model(currentCollection, userSchema, currentCollection);
+}
 
 app.post("/addTask",async(req,res)=>{
     try{const body=req.body;
-    const result=await User.create({
+      const model=getModel();
+    const result=await model.create({
       id:body.id,
         task:body.task,
         startTime:body.startTime,
         endTime:body.endTime,
-        status:body.status,
+        status:body.status
         
     })
     console.log("result:",result);
@@ -64,8 +78,8 @@ app.delete("/deleteTask", async (req, res) => {
     return res.status(400).json({ message: "Task ID is required" });
   }
   try {
-    
-    await User.deleteOne({ id: taskId });
+    const model=getModel();
+    await model.deleteOne({ id: taskId });
    
     res.status(200).json({ message: "Task deleted successfully" });
   } catch (error) {
@@ -78,9 +92,9 @@ app.delete("/deleteTask", async (req, res) => {
 app.put("/updateTask", async (req, res) => {
   try {
     const { id, task, startTime, endTime, status } = req.body;
-
+    const model=getModel();
     // update the document and return the updated document
-    const updated = await User.findOneAndUpdate(
+    const updated = await model.findOneAndUpdate(
       { id },
       { task, startTime, endTime, status },
       { new: true }
@@ -96,6 +110,34 @@ app.put("/updateTask", async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error", error: err.message });
   }
 });
+
+app.post("/endDay", async (req, res) => {
+  try {
+    const { title } = req.body; // frontend sends { title: "Day_25_10_2025" }
+
+    if (!title) {
+      return res.status(400).json({ message: "Title (collection name) required" });
+    }
+
+    // Dynamically create a new model with the collection name as 'title'
+    const DynamicModel = mongoose.model(title, userSchema, title);
+
+    // Optional: insert a dummy doc to make sure the collection is created
+    await DynamicModel.create({
+      id: Date.now().toString(),
+      task: "Daily summary placeholder",
+      startTime: "00:00",
+      endTime: "23:59",
+      status: "complete",
+    });
+currentCollection = title;
+    return res.status(200).json({ message: `New collection '${title}' created successfully` });
+  } catch (err) {
+    console.error("Error creating collection:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // ...existing code...
 
 //mongoDB
@@ -138,9 +180,6 @@ app.post("/evaluate-reason", async (req, res) => {
     res.status(500).json({ evaluation: "Server error" });
   }
 });
-
-
-
 
 
 app.listen(5500, () => console.log("Server running on port 5500"));
