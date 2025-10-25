@@ -6,7 +6,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 const app = express();
-
+import fs from "fs";
 
 const uri = "mongodb://127.0.0.1:27017";
 
@@ -40,9 +40,19 @@ const userSchema=new mongoose.Schema({
   
 })
 
-const User = new mongoose.model("users",userSchema);
+
 
 let currentCollection = 'users';
+try {
+  const saved = JSON.parse(fs.readFileSync("./currentCollection.json", "utf8"));
+  if (saved.name) {
+    currentCollection = saved.name;
+    console.log(`Restored last used collection: ${currentCollection}`);
+  }
+} catch (err) {
+  console.log("No saved collection found, using default 'users'");
+}
+
 function getModel() {
   if (mongoose.models[currentCollection]) {
     return mongoose.models[currentCollection];
@@ -131,6 +141,9 @@ app.post("/endDay", async (req, res) => {
       status: "complete",
     });
 currentCollection = title;
+fs.writeFileSync("./currentCollection.json", JSON.stringify({ name: title }));
+
+console.log(`Switched and saved current collection: ${currentCollection}`);
     return res.status(200).json({ message: `New collection '${title}' created successfully` });
   } catch (err) {
     console.error("Error creating collection:", err);
