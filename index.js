@@ -7,8 +7,8 @@ import bodyParser from "body-parser";
 import cors from "cors";
 const app = express();
 import fs from "fs";
-
-const uri = "mongodb://127.0.0.1:27017";
+import mongoose from "mongoose";
+const uri = process.env.uri;
 
 
 
@@ -19,10 +19,10 @@ app.use(cors()); // allow all origins for testing
 app.use(express.json());
 
 //mongoDB
-import mongoose from "mongoose";
+
 //Connection
 
-mongoose.connect("mongodb://127.0.0.1:27017/taskManagerDB")
+mongoose.connect(uri)
 .then(()=>{
     console.log("Connected to MongoDB");
 })
@@ -103,10 +103,18 @@ app.put("/updateTask", async (req, res) => {
   try {
     const { id, task, startTime, endTime, status } = req.body;
     const model=getModel();
+    
+    // Build update object with only provided fields
+    const updateFields = {};
+    if (task !== undefined) updateFields.task = task;
+    if (startTime !== undefined) updateFields.startTime = startTime;
+    if (endTime !== undefined) updateFields.endTime = endTime;
+    if (status !== undefined) updateFields.status = status;
+    
     // update the document and return the updated document
     const updated = await model.findOneAndUpdate(
       { id },
-      { task, startTime, endTime, status },
+      updateFields,
       { new: true }
     );
 
@@ -140,7 +148,7 @@ app.post("/endDay", async (req, res) => {
       endTime: "23:59",
       status: "complete",
     });
-currentCollection = title;
+currentCollection = title;//switching to new collection
 fs.writeFileSync("./currentCollection.json", JSON.stringify({ name: title }));
 
 console.log(`Switched and saved current collection: ${currentCollection}`);
@@ -150,7 +158,7 @@ console.log(`Switched and saved current collection: ${currentCollection}`);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
+//
 // ...existing code...
 
 //mongoDB
@@ -193,6 +201,37 @@ app.post("/evaluate-reason", async (req, res) => {
     res.status(500).json({ evaluation: "Server error" });
   }
 });
+//displaying data
+app.get("/getAllCollections", async (req, res) => {
+  try {
+    const db = mongoose.connection.db;
+    const collections = await db.listCollections().toArray();
+    const allCollectionsData = {};
 
+    for (const collectionInfo of collections) {
+      const collectionName = collectionInfo.name;
+      // Skip system collections
+      if (collectionName.startsWith('system.')) continue;
+      
+      // Get model for this collection
+      let CollectionModel;
+      if (mongoose.models[collectionName]) {
+        CollectionModel = mongoose.models[collectionName];
+      } else {
+        CollectionModel = mongoose.model(collectionName, userSchema, collectionName);
+      }
+      
+      // Fetch all documents from this collection
+      const documents = await CollectionModel.find({}).lean();
+      allCollectionsData[collectionName] = documents;
+    }
 
+    return res.status(200).json({ collections: allCollectionsData });
+  } catch (err) {
+    console.error("Error fetching all collections:", err);
+    return res.status(500).json({ message: "Internal server error", error: err.message });
+  }
+});
+//displaying data
+//
 app.listen(5500, () => console.log("Server running on port 5500"));

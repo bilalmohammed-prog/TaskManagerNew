@@ -1,15 +1,38 @@
 html{
     height:100%;
 }
-body{
-    display:flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(8, 0, 44, 0.863);
-    height: 100%;
-    width:100%;
-    position: fixed;
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  background-color: #2f2f2f;
 }
+
+/* Add the noise texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Optional: Add subtle vignette */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.3) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+
+
 .container1{
     position:fixed;
     width:100px;
@@ -30,7 +53,7 @@ body{
     background-color: rgb(245, 255, 131);
     font-size:20px;
     z-index:75;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
 
 }
 .time{
@@ -42,11 +65,11 @@ body{
     left:-65px;
     border-radius:5px;
     border:rgb(245, 255, 131) 3px solid;
-    background-color: rgb(245, 255, 131);
+    background-color: rgb(245, 241, 237);
     border:rgb(0, 0, 0) 2px solid;
     font-size:14px;
     z-index:75;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
 }
 .endDay{
     position:absolute;
@@ -58,31 +81,15 @@ body{
     border:rgb(0, 0, 0) 2px solid;
     font-size:14px;
     z-index:75;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     width:100px;
     height:100px;
 }
 .endDay:hover{
     background-color: rgb(239, 255, 179);
 }
-.record{
-    position:absolute;
-    bottom:105px;
-    left:400px;
-    border-radius:5px;
-    border:rgb(245, 255, 131) 3px solid;
-    background-color: rgb(245, 255, 131);
-    border:rgb(0, 0, 0) 2px solid;
-    font-size:14px;
-    font-family:"Bitcount Prop Single";
-    width:100px;
-    height:100px;
-    cursor: pointer;
-    z-index:75;
-}
-.record:hover{
-    background-color: rgb(239, 255, 179);
-}
+
+
 .instructions{
     position:fixed;
     z-index:100;
@@ -93,22 +100,22 @@ body{
 .map{
     height:1430px;
     z-index:0;
-
     position:absolute;
     left:-20px;
+    visibility: hidden;
 }
 .instruction-text{
     width:250px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     color: rgb(0, 255, 238);
 }
 .instruction-title{
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     color: rgb(0, 255, 238);
 }
 
 .obj{
-    font-family:Arial;
+    font-family: 'Roboto', sans-serif;
 }
 .container3{
     max-width: 250px;
@@ -119,7 +126,7 @@ body{
     border: rgb(0, 0, 0) 2px solid;
     border-radius: 10px;
     padding: 10px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     position:absolute;
     top:100px;
     right:-157px;
@@ -205,28 +212,13 @@ body{
     background-color: rgb(245, 255, 131);
     border:rgb(0, 0, 0) 3px solid;
     font-size:18px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     visibility: hidden;
     opacity: 0;
     transition: opacity 0.2s ease, visibility 0.2s ease;
     
 }
-.popup.active{
-    position:fixed;
-    width:500px;
-    height:500px;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    z-index:1000;
-    position:absolute;
-    border-radius:8px;
-    
-    background-color: rgb(245, 255, 131);
-    border:rgb(0, 0, 0) 3px solid;
-    font-weight: 500;
-    font-size:20px;
-    font-family:"Bitcount Prop Single";
+.active{
     opacity:1;
     visibility: visible;
 }
@@ -235,7 +227,7 @@ body{
     bottom: 20px;
     right: 16px;
     background-color: rgb(68, 255, 136);
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     border-radius:2px;
     padding:5px;
 }
@@ -247,12 +239,12 @@ body{
     padding:2px;
     padding-left:5px;
     padding-right:4px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     border-radius:2px;
     padding-left:7px;
 }
 .pt{
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     font-size:22px;
     color: black;
     position:absolute;
@@ -264,11 +256,17 @@ body{
     bottom:0;
     left:0;
     right:0;
-    background:rgba(0,0,0,0.5);
+    background:rgba(0,0,0,0.3);
     position:fixed;
-    z-index:-1;
-
+    z-index:1000;
 }
+.overlay {
+  display: none;
+}
+.overlay.active {
+  display: block;
+}
+
 
 .notaskc{
     position: absolute;
@@ -309,7 +307,7 @@ body{
     background-color: rgb(245, 255, 131);
     border:rgb(0, 0, 0) 3px solid;
     font-size:20px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     visibility: hidden;
     opacity: 0;
 }
@@ -328,7 +326,7 @@ body{
     background-color: rgb(245, 255, 131);
     border:rgb(0, 0, 0) 2px solid;
     font-size:20px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     opacity:1;
     visibility: visible;
 }
@@ -341,7 +339,7 @@ body{
     border-radius:5px;
     background-color: rgb(245, 255, 131);
     font-size:16px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
 }
 
 .rconfirm{
@@ -349,7 +347,7 @@ body{
     bottom: 15px;
     right: 15px;
     background-color: rgb(68, 255, 136);
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     border-radius:2px;
     padding:5px;
 }
@@ -361,7 +359,7 @@ body{
     padding:2px;
     padding-left:5px;
     padding-right:4px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     border-radius:2px;
     padding-left:7px;
 }
@@ -379,7 +377,7 @@ body{
     overflow-y: scroll;
 }
 .AIh{
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     font-size:22px;
     color: black;
     position:absolute;
@@ -389,7 +387,7 @@ body{
     
 }
 .AIp{
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     font-size:18px;
     color: black;
     position:absolute;
@@ -417,7 +415,7 @@ body{
     background-color: rgb(245, 255, 131);
     border:rgb(0, 0, 0) 3px solid;
     font-size:18px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     visibility: hidden;
     opacity: 0;
     transition: opacity 0.2s ease, visibility 0.2s ease;
@@ -436,12 +434,12 @@ body{
     border:rgb(0, 0, 0) 3px solid;
     font-weight: 500;
     font-size:20px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     opacity:1;
     visibility: visible;
 }
 .record_title{
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     font-size:22px;
     color: black;
     position:absolute;
@@ -456,7 +454,7 @@ body{
     padding:2px;
     padding-left:5px;
     padding-right:4px;
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     border-radius:2px;
     padding-left:7px;
 }
@@ -476,7 +474,91 @@ body{
     border-radius: 8px;
 }
 .record_content{
-    font-family:"Bitcount Prop Single";
+    font-family: 'Roboto', sans-serif;
     color: black;
     margin: 5px 0;
+}
+
+.sidebar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:60px;
+    height:100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+    z-index: 50;
+}
+
+.record{
+    position:absolute;
+    top:20px;
+    left:10px;
+  position: relative;
+  display: inline-block;
+  height:10px;
+}
+.record_btn{
+    height:30px;
+    width:30px;
+    border: none;
+    cursor: pointer;
+    
+}
+.record_btn svg {
+    height: 100%;
+    width: 100%;
+    display: block;
+    object-fit: contain;
+}
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  
+  background-color: #2D2D2D;
+  color: #E8E8E8;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 2000;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #2D2D2D;
+}
+
+.record:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+.sidebar .tooltip {
+  bottom: auto;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.sidebar .tooltip::after {
+  top: 50%;
+  left: auto;
+  right: 100%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: #2D2D2D;
 }

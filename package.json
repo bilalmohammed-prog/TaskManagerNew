@@ -2,9 +2,11 @@
   "dependencies": {
     "axios": "^1.12.2",
     "cors": "^2.8.5",
+    "dayjs": "^1.11.19",
     "dotenv": "^17.2.2",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
+    "mongodb": "^7.0.0",
     "mongoose": "^8.19.1",
     "nodemon": "^3.1.10"
   },
@@ -15,7 +17,8 @@
   "main": "ai.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "vitest"
   },
   "repository": {
     "type": "git",
@@ -26,5 +29,10 @@
   "bugs": {
     "url": "https://github.com/bilalmohammed-prog/project-Task_Manager-preAIevaluation/issues"
   },
-  "homepage": "https://github.com/bilalmohammed-prog/project-Task_Manager-preAIevaluation#readme"
+  "homepage": "https://github.com/bilalmohammed-prog/project-Task_Manager-preAIevaluation#readme",
+  "devDependencies": {
+    "@vitest/ui": "^4.0.9",
+    "jsdom": "^27.2.0",
+    "vitest": "^4.0.9"
+  }
 }
