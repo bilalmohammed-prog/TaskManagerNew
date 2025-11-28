@@ -38,7 +38,8 @@ class TaskManager {
 
   // ------------------- EVENT BINDING -------------------
   bindEvents() {
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
+      await this.loadTasksFromDatabase();
       this.renderTasks();
     });
     window.addEventListener('keydown', (e) => this.generateTask(e));
@@ -116,6 +117,45 @@ class TaskManager {
   }
 
   // ------------------- CORE METHODS -------------------
+  async loadTasksFromDatabase() {
+    try {
+      // Use the endpoint that knows about the current collection on the server
+      const res = await fetch("http://localhost:5500/getCurrentTasks", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch tasks: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      const tasks = data.tasks;
+      const collectionName = data.collection;
+      
+      // Convert database format to frontend format
+      this.info = tasks.map(doc => ({
+        id: doc.id,
+        task: doc.task,
+        startTime: doc.startTime,
+        endTime: doc.endTime,
+        sta: doc.status === 'complete' ? 'complete' : 'pending',
+        hours: parseInt(doc.endTime.split(':')[0], 10),
+        mins: parseInt(doc.endTime.split(':')[1], 10),
+        overdue: false
+      }));
+      
+      console.log(`Loaded ${this.info.length} tasks from database collection '${collectionName}'`);
+      
+      // Save to localStorage so it persists during the session
+      this.save();
+    } catch (err) {
+      console.error("Error loading tasks from database:", err);
+      // Fall back to localStorage data if database fetch fails
+      this.info = JSON.parse(localStorage.getItem("info")) || [];
+    }
+  }
+
   renderTasks() {
     this.cobox.innerHTML = "";
 

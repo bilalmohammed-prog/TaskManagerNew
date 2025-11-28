@@ -150,21 +150,11 @@ app.post("/endDay", async (req, res) => {
       return res.status(400).json({ message: "Title (collection name) required" });
     }
 
-    // Dynamically create a new model with the collection name as 'title'
-    const DynamicModel = mongoose.model(title, userSchema, title);
+    // Switch to the new collection
+    currentCollection = title;
+    fs.writeFileSync("./currentCollection.json", JSON.stringify({ name: title }));
 
-    // Optional: insert a dummy doc to make sure the collection is created
-    await DynamicModel.create({
-      id: Date.now().toString(),
-      task: "Daily summary placeholder",
-      startTime: "00:00",
-      endTime: "23:59",
-      status: "complete",
-    });
-currentCollection = title;//switching to new collection
-fs.writeFileSync("./currentCollection.json", JSON.stringify({ name: title }));
-
-console.log(`Switched and saved current collection: ${currentCollection}`);
+    console.log(`Switched and saved current collection: ${currentCollection}`);
     return res.status(200).json({ message: `New collection '${title}' created successfully` });
   } catch (err) {
     console.error("Error creating collection:", err);
@@ -242,6 +232,18 @@ app.get("/getAllCollections", async (req, res) => {
     return res.status(200).json({ collections: allCollectionsData });
   } catch (err) {
     console.error("Error fetching all collections:", err);
+    return res.status(500).json({ message: "Internal server error", error: err.message });
+  }
+});
+
+// Get tasks from current collection only
+app.get("/getCurrentTasks", async (req, res) => {
+  try {
+    const model = getModel();
+    const tasks = await model.find({}).lean();
+    return res.status(200).json({ tasks, collection: currentCollection });
+  } catch (err) {
+    console.error("Error fetching current tasks:", err);
     return res.status(500).json({ message: "Internal server error", error: err.message });
   }
 });
