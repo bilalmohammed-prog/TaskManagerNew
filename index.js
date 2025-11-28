@@ -22,14 +22,27 @@ app.use(express.json());
 
 //Connection
 
-mongoose.connect(uri)
+/**await mongoose.connect(uri)
 .then(()=>{
     console.log("Connected to MongoDB");
 })
 .catch((err)=>{
     console.log("Error connecting to MongoDB:",err);
-})
+})**/
 
+
+(async () => {
+  try {
+    await mongoose.connect(uri);
+    console.log("Connected to MongoDB:", uri);
+
+    // start server only after DB connection
+    app.listen(5500, () => console.log("Server running on port 5500"));
+  } catch (err) {
+    console.error("Error connecting to MongoDB:", err);
+    process.exit(1); // stop process to avoid buffered operations
+  }
+})();
 //Schema
 const userSchema=new mongoose.Schema({
   id:{type:String,required:true},
@@ -106,10 +119,10 @@ app.put("/updateTask", async (req, res) => {
     
     // Build update object with only provided fields
     const updateFields = {};
-    if (task !== undefined) updateFields.task = task;
-    if (startTime !== undefined) updateFields.startTime = startTime;
-    if (endTime !== undefined) updateFields.endTime = endTime;
-    if (status !== undefined) updateFields.status = status;
+    updateFields.task = task;
+    updateFields.startTime = startTime;
+    updateFields.endTime = endTime;
+    updateFields.status = status;
     
     // update the document and return the updated document
     const updated = await model.findOneAndUpdate(
@@ -233,5 +246,3 @@ app.get("/getAllCollections", async (req, res) => {
   }
 });
 //displaying data
-//
-app.listen(5500, () => console.log("Server running on port 5500"));

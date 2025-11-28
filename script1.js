@@ -117,7 +117,7 @@ class TaskManager {
 
   // ------------------- CORE METHODS -------------------
   renderTasks() {
-    this.cobox.innerHTML = "<summary>Task : Time</summary>";
+    this.cobox.innerHTML = "";
 
     this.info.forEach((item) => {
       this.cobox.innerHTML += `
@@ -126,7 +126,7 @@ class TaskManager {
           <button class="delete-button" data-class="${item.id}">X</button>
           <button class="completed-button" data-class="${item.id}">/</button>
           <button class="update-button" data-class="${item.id}">U</button>
-          <button class="checkbox" data-class="${item.id}"></button>
+          <button class="checkbox" data-class="${item.id}" disabled></button>
         </p>
         
         `;
