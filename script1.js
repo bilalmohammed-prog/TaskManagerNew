@@ -194,7 +194,7 @@ class TaskManager {
 
     this.save();
   }
-
+//enter task
   async generateTask(event) {
     if (event.key === 'Enter' && this.task.value && this.time.value) {
       let [startTime, endTime] = this.time.value.split("-").map(s => s.trim());

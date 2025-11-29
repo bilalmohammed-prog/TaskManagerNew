@@ -4,3 +4,7 @@ to display the work done
 2. use ai to write an email explaining why work not done
 
 3. make the tasl:time cover almost entire screen
+
+4. make it so that we can toggle assigining and completign task menus
+
+5. should i place task and time in side bar??
