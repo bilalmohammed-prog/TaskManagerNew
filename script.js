@@ -124,12 +124,12 @@ class TaskManager {
 
   // ------------------- CORE METHODS -------------------
   async loadTasksFromDatabase() {
+    
     try {
-      // Use the endpoint that knows about the current collection on the server
-      const res = await fetch("http://localhost:5500/getCurrentTasks", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" }
-      });
+    const res = await fetch(`http://localhost:5500/getCurrentTasks?empID=${this.currentEmpID || ""}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    });
       
       if (!res.ok) {
         throw new Error(`Failed to fetch tasks: ${res.status}`);
@@ -502,7 +502,7 @@ async loadempID() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            empID: taskObj.empID,
+            empID: item.empID,
             id: item.id,
             task: item.task,
             startTime: item.startTime,

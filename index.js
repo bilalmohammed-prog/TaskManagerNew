@@ -275,14 +275,21 @@ app.get("/getAllCollections", async (req, res) => {
 // Get tasks from current collection only
 app.get("/getCurrentTasks", async (req, res) => {
   try {
+    const empID = req.query.empID;   // <---- get employee filter
     const model = getModel();
-    const tasks = await model.find({}).lean();
+
+    let filter = {};
+    if (empID) filter.empID = empID;  // <---- apply filter if provided
+
+    const tasks = await model.find(filter).lean();
+    
     return res.status(200).json({ tasks, collection: currentCollection });
   } catch (err) {
     console.error("Error fetching current tasks:", err);
     return res.status(500).json({ message: "Internal server error", error: err.message });
   }
 });
+
 //displaying data
 
 //switching employee
