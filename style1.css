@@ -563,7 +563,12 @@ body::after {
     
     font-family: 'Roboto', sans-serif;
     color: rgb(245, 241, 237);
-    font-size:14px;
+    font-size:10px;
+}
+.createEmp:hover,.switchEmp:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    transform: scale(1.3);
 }
 .record_btn:hover {
     background-color: rgba(255, 255, 255, 0.15);
@@ -931,3 +936,4 @@ body::after {
         width: 100%;
     }
 }
+

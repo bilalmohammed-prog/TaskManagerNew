@@ -14,6 +14,7 @@ class TaskManager {
     // State
     this.info = JSON.parse(localStorage.getItem("info")) || [];
     this.currentEmpID = localStorage.getItem("currentEmpID") || null;
+this.currentEmpName = localStorage.getItem("currentEmpName") || null;
 
     // DOM elements
     this.reason_popup = document.querySelector(".reason_popup");
@@ -188,13 +189,29 @@ async switchEmp() {
     const res = await fetch("http://localhost:5500/switchEmp");
     const data = await res.json();
 
-    const ids = data.employees.map(e => e.empID);
-    const chosen = prompt(`Enter employee ID:\n${ids.join("\n")}`);
-    if (!chosen) return;
+    // Show list of employees for user to pick
+    const listString = data.employees
+      .map(e => `${e.empID} — ${e.name}`)
+      .join("\n");
 
-    this.currentEmpID = chosen;   // <-- SAVE EMPLOYEE ID
+    const chosenID = prompt(`Enter employee ID:\n${listString}`);
+    if (!chosenID) return;
+
+    // find matched employee object
+    const emp = data.employees.find(e => e.empID === chosenID);
+    if (!emp) {
+      alert("Invalid employee ID");
+      return;
+    }
+
+    this.currentEmpID = emp.empID;
+    this.currentEmpName = emp.name;
+
+    // Save both to localStorage
     localStorage.setItem("currentEmpID", this.currentEmpID);
-    console.log("Switched to employee:", this.currentEmpID);
+    localStorage.setItem("currentEmpName", this.currentEmpName);
+
+    console.log("Switched to:", this.currentEmpID, this.currentEmpName);
 
     await this.loadTasksFromDatabase();
     this.renderTasks();
@@ -202,6 +219,7 @@ async switchEmp() {
     console.error("Error switching employee:", err);
   }
 }
+
 
 
 async loadempID() {
@@ -223,7 +241,17 @@ async loadempID() {
       }
     }
   renderTasks() {
-    this.empDisplay.innerHTML=this.currentEmpID;
+    this.currentEmpID = localStorage.getItem("currentEmpID");
+  this.currentEmpName = localStorage.getItem("currentEmpName");
+
+  if (this.empDisplay) {
+    if (this.currentEmpID && this.currentEmpName) {
+      this.empDisplay.innerHTML = `Hi, ${this.currentEmpName} (${this.currentEmpID})`;
+    } else {
+      this.empDisplay.innerHTML = "No employee selected";
+    }
+  }
+    
     this.cobox.innerHTML = "";
 
     this.info.forEach((item) => {
@@ -573,9 +601,19 @@ async loadempID() {
   }
 
  endDayConfirm() {
-  const title = prompt("Enter the title for the day");
-  if (!title) return;
-  (async () => {
+  
+  this.currentEmpID = null;
+this.currentEmpName = null;
+localStorage.removeItem("currentEmpID");
+localStorage.removeItem("currentEmpName");
+
+this.empDisplay.innerHTML = "No employee selected";
+
+  this.info = [];
+  this.save();
+  this.renderTasks();
+  this.closepopupf();
+  /**(async () => {
     try {
       const res = await fetch("http://localhost:5500/endDay", {
         method: "POST",
@@ -594,7 +632,7 @@ async loadempID() {
     } catch (error) {
       console.error("Error ending the day:", error);
     }
-  })();
+  })();**/
 }
 
   closeReasonPopup() {
