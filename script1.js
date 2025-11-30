@@ -30,7 +30,7 @@ class TaskManager {
     this.recordPopup = document.querySelector(".record_popup");
     this.recordCancel = document.querySelector(".record_cancel");
     this.recordContent = document.querySelector(".record_content");
-
+    this.createEmpBtn=document.querySelector(".createEmp");
     // Bind events once
     this.bindEvents();
   }
@@ -40,6 +40,7 @@ class TaskManager {
   bindEvents() {
     window.addEventListener('load', async () => {
       await this.loadTasksFromDatabase();
+      await this.loadempID();
       this.renderTasks();
     });
     window.addEventListener('keydown', (e) => this.generateTask(e));
@@ -50,6 +51,7 @@ class TaskManager {
     this.openpopup.addEventListener('click', () => this.popupGenerator());
     this.closepopup.addEventListener("click", () => this.closepopupf());
     this.confirm.addEventListener("click", () => this.endDayConfirm());
+    this.createEmpBtn.addEventListener("click",()=>this.createEmp());
     if (this.recordButton) this.recordButton.addEventListener('click', () => this.openRecordPopup());
     if (this.recordCancel) this.recordCancel.addEventListener("click", () => this.closeRecordPopup());
     // Handle Enter key in reason input via delegation (bind once)
@@ -155,14 +157,53 @@ class TaskManager {
       this.info = JSON.parse(localStorage.getItem("info")) || [];
     }
   }
-
+async createEmp(){
+  const name=prompt("Enter name");
+  const id=nanoid();
+  try {
+        const res = await fetch("http://localhost:5500/createEmp", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: id,
+            name: name
+          })
+        });
+        const result = await res.json();
+        if (result.message) {
+          console.log("Complete task response:", result.message);
+        }
+        // Re-render to reflect any changes
+        this.renderTasks();
+      } catch (err) {
+        console.error("Error updating task status on server:", err);
+      }
+}
+async loadempID() {
+    try {
+      // Use the endpoint that knows about the current collection on the server
+      const res = await fetch("http://localhost:5500/getempID", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch tasks: ${res.status}`);
+      }
+    else{
+        const data = await res.json();
+        console.log(data);
+    }} catch(err){
+        console.log(err);
+      }
+    }
   renderTasks() {
     this.cobox.innerHTML = "";
 
     this.info.forEach((item) => {
       this.cobox.innerHTML += `
         <p class="container3" data-class="${item.id}">
-          ${item.task} : ${item.startTime} to ${item.endTime}
+          ${item.task} :<br> ${item.startTime} to ${item.endTime}
           <button class="delete-button" data-class="${item.id}">X</button>
           <button class="completed-button" data-class="${item.id}">/</button>
           <button class="update-button" data-class="${item.id}">U</button>
@@ -482,7 +523,7 @@ class TaskManager {
     let c = 0, t = 0;
     this.info.forEach((item) => {
       t++;
-      this.taskStatus.innerHTML += `<p>${item.task}: ${item.sta}
+      this.taskStatus.innerHTML += `<p class='popupContainer'>${item.task}: ${item.sta}
       <button class="reason_button" id="${item.id}">r</button>
       </p>`;
       if (item.sta === "complete") c++;
@@ -549,50 +590,80 @@ class TaskManager {
   }
 
   async openRecordPopup() {
-    this.recordPopup.classList.add('active');
-    this.overlay.classList.add('active');
-    this.recordContent.innerHTML = "Loading collections...";
-    
-    try {
-      const res = await fetch("http://localhost:5500/getAllCollections", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" }
-      });
-      
-      if (!res.ok) {
-        throw new Error(`Request failed with ${res.status}`);
-      }
-      
-      const data = await res.json();
-      const collections = data.collections;
-      
-      let html = "";
-      for (const [collectionName, documents] of Object.entries(collections)) {
-        // Filter out placeholder tasks
-        const realTasks = documents.filter(doc => doc.task !== "Daily summary placeholder");
-        
-        html += `<div style="margin-bottom: 20px;"><strong style="font-size: 20px;">Collection: ${collectionName}</strong><br>`;
-        if (realTasks.length === 0) {
-          html += `<em>No tasks in this collection</em>`;
+  this.recordPopup.classList.add('active');
+  this.overlay.classList.add('active');
+  this.recordContent.innerHTML = "Loading collections...";
+
+  try {
+    const res = await fetch("http://localhost:5500/getAllCollections", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    });
+
+    if (!res.ok) {
+      throw new Error(`Request failed with ${res.status}`);
+    }
+
+    const data = await res.json();
+    const collections = data.collections;
+
+    let html = "";
+
+    for (const [collectionName, documents] of Object.entries(collections)) {
+      html += `<div style="margin-bottom: 20px;">
+        <strong style="font-size: 20px;">Collection: ${collectionName}</strong><br>`;
+
+      if (documents.length === 0) {
+        html += `<em>No documents in this collection</em>`;
+      } else {
+        // Detect type of collection by checking first document
+        const firstDoc = documents[0];
+
+        const isTaskCollection =
+          firstDoc.task !== undefined ||
+          firstDoc.startTime !== undefined ||
+          firstDoc.endTime !== undefined;
+
+        const isEmpCollection =
+          firstDoc.empID !== undefined &&
+          firstDoc.name !== undefined;
+
+        if (isTaskCollection) {
+          // Display tasks
+          documents.forEach((doc, index) => {
+            html += `<div style="margin-left: 15px; margin-top: 10px;">
+              <strong>Task ${index + 1}:</strong> ${doc.task || 'N/A'}<br>
+              Time: ${doc.startTime || 'N/A'} - ${doc.endTime || 'N/A'}<br>
+              Status: ${doc.status || 'N/A'}<br>
+              ID: ${doc.id || doc._id || 'N/A'}<br>
+            </div>`;
+          });
+        } else if (isEmpCollection) {
+          // Display employee IDs
+          documents.forEach(doc => {
+            html += `<div style="margin-left: 15px; margin-top: 10px;">
+              <strong>Employee:</strong> ${doc.name} <br>
+              ID: ${doc.empID}<br>
+            </div>`;
+          });
         } else {
-          realTasks.forEach((doc, index) => {
-            html += `<div style="margin-left: 15px; margin-top: 10px;">`;
-            html += `<strong>Task ${index + 1}:</strong> ${doc.task || 'N/A'}<br>`;
-            html += `Time: ${doc.startTime || 'N/A'} - ${doc.endTime || 'N/A'}<br>`;
-            html += `Status: ${doc.status || 'N/A'}<br>`;
-            html += `ID: ${doc.id || 'N/A'}<br>`;
-            html += `</div>`;
+          // Unknown collection type — show raw JSON
+          documents.forEach(doc => {
+            html += `<pre style="margin-left: 15px; margin-top: 10px;">${JSON.stringify(doc, null, 2)}</pre>`;
           });
         }
-        html += `</div><hr style="margin: 15px 0;">`;
       }
-      
-      this.recordContent.innerHTML = html || "<em>No collections found</em>";
-    } catch (err) {
-      console.error("Error fetching collections:", err);
-      this.recordContent.innerHTML = `<em>Error loading collections: ${err.message}</em>`;
+
+      html += `</div><hr style="margin: 15px 0;">`;
     }
+
+    this.recordContent.innerHTML = html || "<em>No collections found</em>";
+  } catch (err) {
+    console.error("Error fetching collections:", err);
+    this.recordContent.innerHTML = `<em>Error loading collections: ${err.message}</em>`;
   }
+}
+
 
   closeRecordPopup() {
     this.recordPopup.classList.remove('active');
@@ -602,7 +673,267 @@ class TaskManager {
 
 // ------------------- INIT -------------------
 // ...existing code...
+//claude
+// Add this section to script1.js, after the TaskManager class definition
+// and before the initialization (before const app1 = new TaskManager();)
+
+// ===============================================
+// TASK ASSIGNMENT MODAL INTEGRATION
+// ===============================================
+
+class AssignTaskModal {
+    constructor(taskManagerInstance) {
+        this.taskManager = taskManagerInstance;
+        
+        // DOM elements
+        this.openBtn = document.getElementById('openAssignModalBtn');
+        this.modalOverlay = document.getElementById('assignModalOverlay');
+        this.closeBtn = document.getElementById('closeAssignModalBtn');
+        this.cancelBtn = document.getElementById('assignCancelBtn');
+        this.form = document.getElementById('assignTaskForm');
+        this.taskInput = document.getElementById('assignTaskInput');
+        this.timeInput = document.getElementById('assignTimeInput');
+        this.okBtn = document.getElementById('assignOkBtn');
+        this.taskValidation = document.getElementById('assignTaskValidation');
+        this.timeValidation = document.getElementById('assignTimeValidation');
+        
+        this.bindEvents();
+    }
+    
+    bindEvents() {
+        if (this.openBtn) this.openBtn.addEventListener('click', () => this.openModal());
+        if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.closeModal());
+        if (this.cancelBtn) this.cancelBtn.addEventListener('click', () => this.closeModal());
+        
+        // Close on overlay click
+        if (this.modalOverlay) {
+            this.modalOverlay.addEventListener('click', (e) => {
+                if (e.target === this.modalOverlay) {
+                    this.closeModal();
+                }
+            });
+        }
+        
+        // Close on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.modalOverlay && this.modalOverlay.classList.contains('active')) {
+                this.closeModal();
+            }
+        });
+        
+        // Validate on input
+        if (this.taskInput) this.taskInput.addEventListener('input', () => this.validateForm());
+        if (this.timeInput) this.timeInput.addEventListener('input', () => this.validateForm());
+        
+        // Handle form submission
+        if (this.form) this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        
+        // Allow Enter key in time input to submit
+        if (this.timeInput) {
+            this.timeInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !this.okBtn.disabled) {
+                    e.preventDefault();
+                    this.handleSubmit(e);
+                }
+            });
+        }
+    }
+    
+    openModal() {
+        if (this.modalOverlay) {
+            this.modalOverlay.classList.add('active');
+            if (this.taskInput) this.taskInput.focus();
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    
+    closeModal() {
+        if (this.modalOverlay) {
+            this.modalOverlay.classList.remove('active');
+            this.resetForm();
+            document.body.style.overflow = '';
+        }
+    }
+    
+    resetForm() {
+        if (this.form) this.form.reset();
+        if (this.okBtn) this.okBtn.disabled = true;
+        if (this.taskValidation) this.taskValidation.classList.remove('show');
+        if (this.timeValidation) this.timeValidation.classList.remove('show');
+        if (this.okBtn) this.okBtn.classList.remove('loading');
+    }
+    
+    validateForm() {
+        const taskValue = this.taskInput ? this.taskInput.value.trim() : '';
+        const timeValue = this.timeInput ? this.timeInput.value.trim() : '';
+        
+        // Enable OK button only if both fields have values
+        if (this.okBtn) {
+            this.okBtn.disabled = !(taskValue && timeValue);
+        }
+        
+        // Hide validation messages when user starts typing
+        if (taskValue && this.taskValidation) {
+            this.taskValidation.classList.remove('show');
+        }
+        if (timeValue && this.timeValidation) {
+            this.timeValidation.classList.remove('show');
+        }
+    }
+    
+    showValidationErrors() {
+        const taskValue = this.taskInput ? this.taskInput.value.trim() : '';
+        const timeValue = this.timeInput ? this.timeInput.value.trim() : '';
+        
+        if (!taskValue && this.taskValidation) {
+            this.taskValidation.classList.add('show');
+        }
+        if (!timeValue && this.timeValidation) {
+            this.timeValidation.classList.add('show');
+        }
+    }
+    
+    async handleSubmit(event) {
+        event.preventDefault();
+        
+        const taskValue = this.taskInput ? this.taskInput.value.trim() : '';
+        const timeValue = this.timeInput ? this.timeInput.value.trim() : '';
+        
+        // Validate inputs
+        if (!taskValue || !timeValue) {
+            this.showValidationErrors();
+            return;
+        }
+        
+        // Show loading state
+        if (this.okBtn) {
+            this.okBtn.classList.add('loading');
+            this.okBtn.disabled = true;
+        }
+        
+        try {
+            // Use the existing TaskManager instance to create the task
+            await this.createTaskViaManager(taskValue, timeValue);
+            
+            // Close modal on success
+            this.closeModal();
+            
+            console.log('Task assigned successfully via modal!');
+        } catch (error) {
+            // Handle errors
+            console.error('Failed to assign task:', error);
+            alert('Failed to assign task. Please try again.');
+            
+            // Remove loading state
+            if (this.okBtn) {
+                this.okBtn.classList.remove('loading');
+                this.okBtn.disabled = false;
+            }
+        }
+    }
+    
+    async createTaskViaManager(taskDescription, timeRange) {
+        // Validate inputs
+        if (!taskDescription || !timeRange) {
+            console.error('Task description and time range are required');
+            throw new Error('Task description and time range are required');
+        }
+        
+        try {
+            // Parse time range
+            let [startTime, endTime] = timeRange.split("-").map(s => s.trim());
+            
+            // Validate time format
+            if (!startTime || !endTime) {
+                throw new Error('Invalid time format');
+            }
+            
+            // Generate unique ID
+            let id = nanoid();
+            
+            // Parse end time for hours and minutes
+            let [hStr, mStr] = endTime.split(":");
+            let hours = parseInt(hStr, 10);
+            let mins = parseInt(mStr, 10);
+            
+            // Validate parsed values
+            if (isNaN(hours) || isNaN(mins)) {
+                throw new Error('Invalid time values');
+            }
+            
+            // Create task object
+            let obj = {
+                id,
+                startTime,
+                endTime,
+                hours,
+                mins,
+                task: taskDescription,
+                sta: "pending",
+                overdue: false
+            };
+            
+            // Add to info array in TaskManager
+            this.taskManager.info.push(obj);
+            
+            // Save and render using TaskManager methods
+            this.taskManager.save();
+            this.taskManager.renderTasks();
+            
+            // Find the task object
+            const taskObj = this.taskManager.info.find(item => item.id === obj.id);
+            console.log("TaskObj found:", taskObj);
+            
+            if (taskObj) {
+                try {
+                    // Send to backend
+                    const res = await fetch("http://localhost:5500/addTask", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            id: taskObj.id,
+                            task: taskObj.task,
+                            startTime: taskObj.startTime,
+                            endTime: taskObj.endTime,
+                            status: taskObj.sta
+                        })
+                    });
+                    
+                    if (!res.ok) {
+                        const errorText = await res.text();
+                        throw new Error(`HTTP error! status: ${res.status}, message: ${errorText}`);
+                    }
+                    
+                    const result = await res.json();
+                    console.log("Task added to database:", result.message || JSON.stringify(result));
+                    return true; // Success
+                } catch (err) {
+                    console.error("Error adding task to DB:", err);
+                    console.error("Error details:", err.message);
+                    throw err; // Re-throw to handle in UI
+                }
+            } else {
+                console.error("Task not found for id", obj.id);
+                throw new Error("Task not found after creation");
+            }
+        } catch (error) {
+            console.error("Error in createTaskViaManager:", error);
+            throw error; // Re-throw to handle in UI
+        }
+    }
+}
+
+// Initialize the modal after TaskManager is created
+// Modify the existing initialization section:
+// Replace: const app1 = new TaskManager();
+// With:
+
 const app1 = new TaskManager();
+const assignModal = new AssignTaskModal(app1);
+
+// Rest of the code remains the same...
+//claude
+
 
 // reload on device minute change (fires at the next exact minute boundary, then every minute).
 // skips reload when user is actively typing in an input/textarea or an editable element

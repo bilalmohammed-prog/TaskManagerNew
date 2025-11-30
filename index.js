@@ -53,7 +53,49 @@ const userSchema=new mongoose.Schema({
   
 })
 
+const empIDSchema=new mongoose.Schema({
+  empID:{type:String,unique:true,required:true},
+  name:{type:String,required:true}
+})
+const empIDModel=mongoose.model('empID',empIDSchema,'empID');
 
+
+app.get("/getempID", async (req, res) => {
+  try {
+    const model = empIDModel;     // your Employee model
+    const ids = await model.find({}).lean();
+
+    return res.status(200).json({ employees: ids });  // return the actual IDs
+  } catch (err) {
+    console.error("Error fetching employee IDs:", err);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: err.message
+    });
+  }
+});
+
+app.put("/createEmp", async (req, res) => {
+  try {
+    const body = req.body;
+    const id = body.id;
+    const name = body.name;
+
+    if (!id || !name) {
+      return res.status(400).json({ message: "id and name required" });
+    }
+
+    const emp = await empIDModel.create({
+      empID: id,
+      name: name
+    });
+
+    return res.status(200).json({ message: "Employee created", data: emp });
+  } catch (err) {
+    console.error("Error creating employee:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
 
 let currentCollection = 'users';
 try {
@@ -211,30 +253,21 @@ app.get("/getAllCollections", async (req, res) => {
     const collections = await db.listCollections().toArray();
     const allCollectionsData = {};
 
-    for (const collectionInfo of collections) {
-      const collectionName = collectionInfo.name;
-      // Skip system collections
-      if (collectionName.startsWith('system.')) continue;
-      
-      // Get model for this collection
-      let CollectionModel;
-      if (mongoose.models[collectionName]) {
-        CollectionModel = mongoose.models[collectionName];
-      } else {
-        CollectionModel = mongoose.model(collectionName, userSchema, collectionName);
-      }
-      
-      // Fetch all documents from this collection
-      const documents = await CollectionModel.find({}).lean();
-      allCollectionsData[collectionName] = documents;
+    for (const collection of collections) {
+      const name = collection.name;
+      if (name.startsWith("system.")) continue;
+
+      const docs = await db.collection(name).find({}).toArray(); // native
+      allCollectionsData[name] = docs;
     }
 
-    return res.status(200).json({ collections: allCollectionsData });
+    res.json({ collections: allCollectionsData });
   } catch (err) {
-    console.error("Error fetching all collections:", err);
-    return res.status(500).json({ message: "Internal server error", error: err.message });
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
+
 
 // Get tasks from current collection only
 app.get("/getCurrentTasks", async (req, res) => {
@@ -248,3 +281,8 @@ app.get("/getCurrentTasks", async (req, res) => {
   }
 });
 //displaying data
+
+//switching employee
+app.get("/switchEmp", async (req,res)=>{
+  const body=req.body;
+})

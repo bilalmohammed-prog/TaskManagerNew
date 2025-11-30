@@ -30,13 +30,22 @@
     
         <div class="rsidebar">
             <div class="assign">
-        <input type="text" class="task" placeholder="Task">
-        <input type="text" class="time" placeholder="Time: 12:00-14:00">
-        </div>
+    <!-- <input type="text" class="task" placeholder="Task"> -->
+    <!-- <input type="text" class="time" placeholder="Time: 12:00-14:00"> -->
+    
+    <!-- New: Assign Task Button -->
+    <button class="assign-task-btn" id="openAssignModalBtn">
+        <svg viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#ffffff" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>add-task-list</title> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="icon" fill="#ffffff" transform="translate(70.530593, 46.125620)"> <path d="M185.469407,39.207713 L356.136074,39.207713 L356.136074,81.8743797 L185.469407,81.8743797 L185.469407,39.207713 Z M185.469407,188.541046 L356.136074,188.541046 L356.136074,231.207713 L185.469407,231.207713 L185.469407,188.541046 Z M119.285384,7.10542736e-15 L144.649352,19.5107443 L68.6167605,118.353113 L-4.26325641e-14,58.3134476 L21.0721475,34.2309934 L64.0400737,71.8050464 L119.285384,7.10542736e-15 Z M119.285384,149.333333 L144.649352,168.844078 L68.6167605,267.686446 L-4.26325641e-14,207.646781 L21.0721475,183.564327 L64.0400737,221.13838 L119.285384,149.333333 Z M356.136074,273.87438 L356.135407,337.87338 L420.136074,337.87438 L420.136074,380.541046 L356.135407,380.54038 L356.136074,444.541046 L313.469407,444.541046 L313.469407,380.54038 L249.469407,380.541046 L249.469407,337.87438 L313.469407,337.87338 L313.469407,273.87438 L356.136074,273.87438 Z" id="Combined-Shape"> </path> </g> </g> </g></svg>
+        <span class="tooltip">Add Task</span>
+    </button>
+    <button class="createEmp">createEmp</button>
+    <button class="switchEmp">switchEmp</button>
+</div>
         
         <button class="endDay">
             <svg viewBox="-0.03 0 20.051 20.051" xmlns="http://www.w3.org/2000/svg" fill="#ffffff" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="add-user-left-9" transform="translate(-2 -1.949)"> <path id="secondary" fill="#ffffff" d="M8.06,14.22a1,1,0,0,0,.28-1.45,5.91,5.91,0,0,1-.88-1.47,5.5,5.5,0,0,0,4-5.3,5.37,5.37,0,0,0-.65-2.58A5.85,5.85,0,0,1,12.27,3,6,6,0,0,1,19,9a5.94,5.94,0,0,1-1.34,3.77,1,1,0,0,0,.28,1.45A7,7,0,0,1,21,20a1,1,0,0,1-1,1H6a1,1,0,0,1-1-1,7,7,0,0,1,3.06-5.78Z"></path> <path id="primary" d="M3,5H7M5,7V3" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path> <path id="primary-2" data-name="primary" d="M11,3.34A5.47,5.47,0,0,1,12.27,3,6,6,0,0,1,19,9a5.94,5.94,0,0,1-1.34,3.77,1,1,0,0,0,.28,1.45A7,7,0,0,1,21,20a1,1,0,0,1-1,1H6a1,1,0,0,1-1-1,7,7,0,0,1,3.06-5.78,1,1,0,0,0,.28-1.45,5.71,5.71,0,0,1-1-1.77" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path> </g> </g></svg>
         <span class="tooltip">Assign</span>
+        
         </button>
         
 
@@ -88,8 +97,56 @@
         
         </div>
     </div>
-
     
+
+    <div class="assign-modal-overlay" id="assignModalOverlay">
+    <div class="assign-modal" role="dialog" aria-labelledby="assignModalTitle" aria-modal="true">
+        <!-- Close Button -->
+        <button class="assign-modal-close" id="closeAssignModalBtn" aria-label="Close modal">×</button>
+
+        <!-- Modal Header -->
+        <div class="assign-modal-header">
+            <h2 class="assign-modal-title" id="assignModalTitle">Assign New Task</h2>
+            <p class="assign-modal-subtitle">Fill in the details to assign a task to an employee</p>
+        </div>
+
+        <!-- Form -->
+        <form id="assignTaskForm">
+            <!-- Task Description -->
+            <div class="assign-form-group">
+                <label for="assignTaskInput" class="assign-form-label">Task Description *</label>
+                <textarea 
+                    id="assignTaskInput" 
+                    class="assign-form-textarea" 
+                    placeholder="Enter task details..."
+                    required
+                    aria-required="true"
+                ></textarea>
+                <span class="assign-validation-message" id="assignTaskValidation">Task description is required</span>
+            </div>
+
+            <!-- Time Range -->
+            <div class="assign-form-group">
+                <label for="assignTimeInput" class="assign-form-label">Time Range *</label>
+                <input 
+                    type="text" 
+                    id="assignTimeInput" 
+                    class="assign-form-input" 
+                    placeholder="e.g., 09:00 - 17:00"
+                    required
+                    aria-required="true"
+                />
+                <span class="assign-validation-message" id="assignTimeValidation">Time range is required (format: HH:MM - HH:MM)</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="assign-modal-actions">
+                <button type="button" class="assign-btn assign-btn-cancel" id="assignCancelBtn">Cancel</button>
+                <button type="submit" class="assign-btn assign-btn-ok" id="assignOkBtn" disabled>Assign Task</button>
+            </div>
+        </form>
+    </div>
+</div>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
     <script type="module" src="script1.js"></script>
 </body>

@@ -7,4 +7,6 @@ to display the work done
 
 4. make it so that we can toggle assigining and completign task menus
 
-5. should i place task and time in side bar??
+
+
+6.make it check that max time 24:00

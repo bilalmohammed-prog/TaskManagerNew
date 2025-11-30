@@ -143,12 +143,12 @@ body::after {
     font-family: 'Roboto', sans-serif;
 }
 .container3{
-    max-width: 250px;
+    max-width: 550px;
     position:relative;
 }
 .cobox{
     background-color: transparent;
-    
+    left:200px;
     padding: 10px;
     font-family: 'Roboto', sans-serif;
     font-size: 20px;
@@ -157,11 +157,18 @@ body::after {
     padding-right:40px;
     padding-left:40px;
     height:500px;
-    width:400px;
+    width:700px;
     overflow-y: scroll;
     max-height: 500px;
     scroll-behavior: smooth;
     color:rgb(245, 241, 237);
+}
+.cobox,
+.container3,
+.popupContainer
+ {
+    word-break: break-all;  /* Breaks at any character, more aggressive */
+    overflow-wrap: break-word;
 }
 
 /* Custom scrollbar for .cobox */
@@ -530,17 +537,20 @@ body::after {
   height:10px;
   background-color: none;
 }
-.record_btn{
+.record_btn,.assign-task-btn,.createEmp,.switchEmp {
     height:35px;
     width:35px;
     border: none;
     border-radius: 3px;
     cursor: pointer;
     background-color: transparent;
-}
-.record_btn {
+
     appearance: none;
     -webkit-appearance: none;
+}
+.createEmp{
+    position:absolute;
+    top:60px;
 }
 .record_btn:hover {
     background-color: rgba(255, 255, 255, 0.15);
@@ -589,6 +599,7 @@ body::after {
 }
 
 .record_btn:hover .tooltip,
+.assign-task-btn:hover .tooltip,
 .endDay:hover .tooltip {
   opacity: 1;
   visibility: visible;
@@ -627,3 +638,283 @@ body::after {
 /* If you still see jagged edges, avoid fractional pixel offsets (use whole px values)
    and ensure devicePixelRatio isn't being scaled by transforms. */
   
+/* claude */
+/* ===============================================
+   TASK ASSIGNMENT MODAL STYLES
+   Add this section to style1.css
+   =============================================== */
+
+/* Trigger Button in Sidebar */
+.assign-task-btn{
+    position:absolute;
+    top:500px;
+}
+
+.assign-task-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    transform: scale(1.3);
+}
+
+
+.assign-task-btn svg {
+    height: 60%;
+    width: 100%;
+    display: block;
+    object-fit: contain;
+}
+
+/* Modal Overlay */
+.assign-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+.assign-modal-overlay.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Container */
+.assign-modal {
+    background-color: rgb(245, 255, 131);
+    border: 3px solid rgb(0, 0, 0);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    padding: 30px;
+    position: relative;
+    
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    background-clip: padding-box;
+    -webkit-background-clip: padding-box;
+    -webkit-font-smoothing: antialiased;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* Modal Header */
+.assign-modal-header {
+    margin-bottom: 24px;
+}
+
+.assign-modal-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: #000;
+    margin-bottom: 8px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.assign-modal-subtitle {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.7);
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Close Button */
+.assign-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background-color: rgb(218, 62, 62);
+    border: none;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 18px;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto', sans-serif;
+}
+
+.assign-modal-close:hover {
+    background-color: rgb(180, 40, 40);
+}
+
+/* Form Fields */
+.assign-form-group {
+    margin-bottom: 20px;
+}
+
+.assign-form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #000;
+    margin-bottom: 8px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.assign-form-input,
+.assign-form-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+    background-color: rgba(255, 255, 255, 0.8);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.assign-form-input:focus,
+.assign-form-textarea:focus {
+    outline: none;
+    border-color: rgb(0, 0, 0);
+    background-color: rgba(255, 255, 255, 1);
+}
+
+.assign-form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    max-height: 200px;
+}
+
+.assign-form-input::placeholder,
+.assign-form-textarea::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+/* Validation Message */
+.assign-validation-message {
+    font-size: 12px;
+    color: rgb(218, 62, 62);
+    margin-top: 6px;
+    display: none;
+    font-family: 'Roboto', sans-serif;
+}
+
+.assign-validation-message.show {
+    display: block;
+}
+
+/* Modal Actions */
+.assign-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.assign-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Roboto', sans-serif;
+    min-width: 80px;
+}
+
+.assign-btn-cancel {
+    background-color: rgb(218, 62, 62);
+    color: white;
+}
+
+.assign-btn-cancel:hover {
+    background-color: rgb(180, 40, 40);
+    transform: translateY(-2px);
+}
+
+.assign-btn-ok {
+    background-color: rgb(68, 255, 136);
+    color: #000;
+}
+
+.assign-btn-ok:hover:not(:disabled) {
+    background-color: rgb(40, 220, 100);
+    transform: translateY(-2px);
+}
+
+.assign-btn-ok:disabled {
+    background-color: rgba(68, 255, 136, 0.4);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Loading State */
+.assign-btn-ok.loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+}
+
+.assign-btn-ok.loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .assign-modal {
+        padding: 20px;
+        width: 95%;
+    }
+
+    .assign-modal-title {
+        font-size: 20px;
+    }
+
+    .assign-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .assign-btn {
+        width: 100%;
+    }
+}
