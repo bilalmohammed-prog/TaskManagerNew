@@ -15,3 +15,7 @@ this is done wehn add employee is clicked
 6.make it check that max time 24:00
 
 8. when employee is clicked, displays assigned tasks
+
+9. ask copilot to write:
+    create cobox1, rsidebar1 such that when empAccess clicked these r displaye dand 
+    original coboz and rsidebar r hidden

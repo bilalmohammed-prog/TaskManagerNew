@@ -12,6 +12,8 @@ export const nanoid = (e = 10) => {
 class TaskManager {
   constructor() {
     // State
+    this.currentSection = localStorage.getItem("currentSection") || "manager";
+
     this.info = JSON.parse(localStorage.getItem("info")) || [];
     this.currentEmpID = localStorage.getItem("currentEmpID") || null;
 this.currentEmpName = localStorage.getItem("currentEmpName") || null;
@@ -238,7 +240,7 @@ async loadempID() {
     }} catch(err){
         console.log(err);
       }
-    }
+    }//main render tasks
   renderTasks() {
     this.currentEmpID = localStorage.getItem("currentEmpID");
   this.currentEmpName = localStorage.getItem("currentEmpName");
@@ -254,17 +256,34 @@ async loadempID() {
     this.cobox.innerHTML = "";
 
     this.info.forEach((item) => {
-      this.cobox.innerHTML += `
-        <p class="container3" data-class="${item.id}">
+      if (this.currentSection==="manager"){
+  this.cobox.innerHTML += `
+    <div class="container3" data-class="${item.id}">
+      <div class="taskText">
+        ${item.task} :<br> ${item.startTime} to ${item.endTime}
+      </div>
+      <div class="container2">
+        <button class="delete-button" data-class="${item.id}">X</button>
+        <button class="update-button" data-class="${item.id}">U</button>
+        <button class="checkbox" data-class="${item.id}" disabled></button>
+      </div>
+    </div>
+  `;
+}
+
+        else if (this.currentSection==="employees"){
+          this.cobox.innerHTML += `
+        <div class="container3" data-class="${item.id}">
+        <div class="taskText">
           ${item.task} :<br> ${item.startTime} to ${item.endTime}
-          <button class="delete-button" data-class="${item.id}">X</button>
+          </div>
+          <div class="container2">
           <button class="completed-button" data-class="${item.id}">/</button>
-          <button class="update-button" data-class="${item.id}">U</button>
           <button class="checkbox" data-class="${item.id}" disabled></button>
-        </p>
+        </div></div>
         
         `;
-
+        }
       // check overdue
       const nowH = dayjs().hour();
       const nowM = dayjs().minute();
@@ -1309,7 +1328,41 @@ class SwitchEmpModal {
         return div.innerHTML;
     }
 }
+const app1 = new TaskManager();
+const assignModal = new AssignTaskModal(app1);
+const switchEmpModal = new SwitchEmpModal(app1);
+//switching sections
+window.addEventListener("load", () => {
+    const section = localStorage.getItem("currentSection") || "tasks";
+    showSection(section);
+    
+    app1.renderTasks();
+});
 
+function showSection(section) {
+    localStorage.setItem("currentSection", section);
+    app1.currentSection = section;
+    
+    app1.renderTasks();
+    // show/hide areas here
+}
+
+
+
+document.querySelector(".inbox").addEventListener("click", () => {
+    showSection("tasks");
+    location.reload();
+});
+
+document.querySelector(".empAccess").addEventListener("click", () => {
+    showSection("employees");
+    location.reload();
+});
+
+document.querySelector(".managerAccess").addEventListener("click", () => {
+    showSection("manager");
+    location.reload();
+});
 
 
 // Initialize the modal after TaskManager is created
@@ -1317,9 +1370,7 @@ class SwitchEmpModal {
 // Replace: const app1 = new TaskManager();
 // With:
 
-const app1 = new TaskManager();
-const assignModal = new AssignTaskModal(app1);
-const switchEmpModal = new SwitchEmpModal(app1);  // <-- THIS WAS MISSING!
+  // <-- THIS WAS MISSING!
 
 // reload on device minute change
 (function scheduleMinuteReload() {
