@@ -149,6 +149,51 @@
         </form>
     </div>
 </div>
+
+
+<!-- Switch Employee Modal -->
+<div class="switch-emp-modal-overlay" id="switchEmpModalOverlay">
+    <div class="switch-emp-modal" role="dialog" aria-labelledby="switchEmpModalTitle" aria-modal="true">
+        <!-- Close Button -->
+        <button class="switch-emp-modal-close" id="closeSwitchEmpModalBtn" aria-label="Close modal">×</button>
+
+        <!-- Modal Header -->
+        <div class="switch-emp-modal-header">
+            <h2 class="switch-emp-modal-title" id="switchEmpModalTitle">Select Employee</h2>
+            <p class="switch-emp-modal-subtitle">Choose an employee to switch to</p>
+        </div>
+
+        <!-- Employee List Container -->
+        <div class="switch-emp-list-container" id="switchEmpListContainer">
+            <!-- Loading state -->
+            <div class="switch-emp-loading" id="switchEmpLoading">
+                <div class="switch-emp-spinner"></div>
+                <p>Loading employees...</p>
+            </div>
+
+            <!-- Error state -->
+            <div class="switch-emp-error" id="switchEmpError" style="display: none;">
+                <p>Failed to load employees. Please try again.</p>
+                <button class="switch-emp-retry-btn" id="switchEmpRetryBtn">Retry</button>
+            </div>
+
+            <!-- Employee list (dynamically populated) -->
+            <div class="switch-emp-list" id="switchEmpList">
+                <!-- Employee items will be inserted here dynamically -->
+            </div>
+        </div>
+
+        <!-- Empty state -->
+        <div class="switch-emp-empty" id="switchEmpEmpty" style="display: none;">
+            <p>No employees found</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="switch-emp-modal-actions">
+            <button type="button" class="switch-emp-btn switch-emp-btn-cancel" id="switchEmpCancelBtn">Cancel</button>
+        </div>
+    </div>
+</div>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
     <script type="module" src="script.js"></script>
 </body>

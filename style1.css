@@ -937,3 +937,298 @@ body::after {
     }
 }
 
+/* ===============================================
+   SWITCH EMPLOYEE MODAL STYLES
+   Add this section to style1.css
+   =============================================== */
+
+/* Modal Overlay */
+.switch-emp-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+.switch-emp-modal-overlay.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Modal Container */
+.switch-emp-modal {
+    background-color: rgb(245, 255, 131);
+    border: 3px solid rgb(0, 0, 0);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    max-height: 80vh;
+    padding: 30px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    background-clip: padding-box;
+    -webkit-background-clip: padding-box;
+    -webkit-font-smoothing: antialiased;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    animation: slideIn 0.3s ease;
+}
+
+/* Modal Header */
+.switch-emp-modal-header {
+    margin-bottom: 20px;
+}
+
+.switch-emp-modal-title {
+    font-size: 22px;
+    font-weight: 500;
+    color: #000;
+    margin-bottom: 8px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.switch-emp-modal-subtitle {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.7);
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Close Button */
+.switch-emp-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background-color: rgb(218, 62, 62);
+    border: none;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 18px;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Roboto', sans-serif;
+    z-index: 10;
+}
+
+.switch-emp-modal-close:hover {
+    background-color: rgb(180, 40, 40);
+}
+
+/* List Container */
+.switch-emp-list-container {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    min-height: 200px;
+    max-height: 400px;
+}
+
+.switch-emp-list-container::-webkit-scrollbar {
+    width: 10px;
+}
+
+.switch-emp-list-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+}
+
+.switch-emp-list-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+}
+
+.switch-emp-list-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Loading State */
+.switch-emp-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: rgba(0, 0, 0, 0.7);
+    font-family: 'Roboto', sans-serif;
+}
+
+.switch-emp-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+}
+
+/* Error State */
+.switch-emp-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: rgb(218, 62, 62);
+    font-family: 'Roboto', sans-serif;
+    text-align: center;
+}
+
+.switch-emp-retry-btn {
+    margin-top: 16px;
+    padding: 8px 20px;
+    background-color: rgb(68, 255, 136);
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Roboto', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.switch-emp-retry-btn:hover {
+    background-color: rgb(40, 220, 100);
+    transform: translateY(-2px);
+}
+
+/* Empty State */
+.switch-emp-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: rgba(0, 0, 0, 0.6);
+    font-family: 'Roboto', sans-serif;
+    font-style: italic;
+}
+
+/* Employee List */
+.switch-emp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Employee Item */
+.switch-emp-item {
+    background-color: rgba(255, 255, 255, 0.6);
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Roboto', sans-serif;
+}
+
+.switch-emp-item:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.4);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.switch-emp-item:active {
+    transform: translateX(2px);
+}
+
+/* Current employee indicator */
+.switch-emp-item.current {
+    background-color: rgba(68, 255, 136, 0.3);
+    border-color: rgb(68, 255, 136);
+    cursor: default;
+}
+
+.switch-emp-item.current:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.switch-emp-item-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: #000;
+    margin-bottom: 4px;
+}
+
+.switch-emp-item-id {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.switch-emp-item-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    background-color: rgb(68, 255, 136);
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #000;
+}
+
+/* Modal Actions */
+.switch-emp-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.switch-emp-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Roboto', sans-serif;
+    min-width: 80px;
+}
+
+.switch-emp-btn-cancel {
+    background-color: rgb(218, 62, 62);
+    color: white;
+}
+
+.switch-emp-btn-cancel:hover {
+    background-color: rgb(180, 40, 40);
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .switch-emp-modal {
+        padding: 20px;
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .switch-emp-modal-title {
+        font-size: 20px;
+    }
+
+    .switch-emp-item {
+        padding: 14px;
+    }
+
+    .switch-emp-item-name {
+        font-size: 15px;
+    }
+}

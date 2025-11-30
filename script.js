@@ -194,8 +194,7 @@ async switchEmp() {
       .map(e => `${e.empID} — ${e.name}`)
       .join("\n");
 
-    const chosenID = prompt(`Enter employee ID:\n${listString}`);
-    if (!chosenID) return;
+    
 
     // find matched employee object
     const emp = data.employees.find(e => e.empID === chosenID);
@@ -1000,6 +999,217 @@ class AssignTaskModal {
     }
 }
 
+// ===============================================
+// SWITCH EMPLOYEE MODAL CLASS
+// Add this class definition to script.js, after the AssignTaskModal class
+// ===============================================
+
+class SwitchEmpModal {
+    constructor(taskManagerInstance) {
+        this.taskManager = taskManagerInstance;
+        
+        // DOM elements
+        this.triggerBtn = document.querySelector('.switchEmp');
+        this.modalOverlay = document.getElementById('switchEmpModalOverlay');
+        this.modal = document.querySelector('.switch-emp-modal');
+        this.closeBtn = document.getElementById('closeSwitchEmpModalBtn');
+        this.cancelBtn = document.getElementById('switchEmpCancelBtn');
+        this.listContainer = document.getElementById('switchEmpListContainer');
+        this.employeeList = document.getElementById('switchEmpList');
+        this.loadingState = document.getElementById('switchEmpLoading');
+        this.errorState = document.getElementById('switchEmpError');
+        this.emptyState = document.getElementById('switchEmpEmpty');
+        this.retryBtn = document.getElementById('switchEmpRetryBtn');
+        
+        this.employees = [];
+        
+        this.bindEvents();
+    }
+    
+    bindEvents() {
+        // Open modal when switchEmp button is clicked
+        if (this.triggerBtn) {
+            this.triggerBtn.addEventListener('click', () => this.openModal());
+        }
+        
+        // Close modal handlers
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', () => this.closeModal());
+        }
+        if (this.cancelBtn) {
+            this.cancelBtn.addEventListener('click', () => this.closeModal());
+        }
+        
+        // Close on overlay click
+        if (this.modalOverlay) {
+            this.modalOverlay.addEventListener('click', (e) => {
+                if (e.target === this.modalOverlay) {
+                    this.closeModal();
+                }
+            });
+        }
+        
+        // Close on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && 
+                this.modalOverlay && 
+                this.modalOverlay.classList.contains('active')) {
+                this.closeModal();
+            }
+        });
+        
+        // Retry button
+        if (this.retryBtn) {
+            this.retryBtn.addEventListener('click', () => this.loadEmployees());
+        }
+        
+        // Delegate employee selection clicks
+        if (this.employeeList) {
+            this.employeeList.addEventListener('click', (e) => {
+                const item = e.target.closest('.switch-emp-item');
+                if (item && !item.classList.contains('current')) {
+                    const empID = item.dataset.empId;
+                    const empName = item.dataset.empName;
+                    this.selectEmployee(empID, empName);
+                }
+            });
+        }
+    }
+    
+    async openModal() {
+        if (this.modalOverlay) {
+            this.modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Load employees when modal opens
+            await this.loadEmployees();
+        }
+    }
+    
+    closeModal() {
+        if (this.modalOverlay) {
+            this.modalOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+    
+    async loadEmployees() {
+        this.showLoading();
+        
+        try {
+            const res = await fetch("http://localhost:5500/switchEmp");
+            
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            
+            const data = await res.json();
+            this.employees = data.employees || [];
+            
+            if (this.employees.length === 0) {
+                this.showEmpty();
+            } else {
+                this.renderEmployeeList();
+            }
+        } catch (err) {
+            console.error("Error fetching employees:", err);
+            this.showError();
+        }
+    }
+    
+    showLoading() {
+        if (this.loadingState) this.loadingState.style.display = 'flex';
+        if (this.errorState) this.errorState.style.display = 'none';
+        if (this.emptyState) this.emptyState.style.display = 'none';
+        if (this.employeeList) this.employeeList.style.display = 'none';
+    }
+    
+    showError() {
+        if (this.loadingState) this.loadingState.style.display = 'none';
+        if (this.errorState) this.errorState.style.display = 'flex';
+        if (this.emptyState) this.emptyState.style.display = 'none';
+        if (this.employeeList) this.employeeList.style.display = 'none';
+    }
+    
+    showEmpty() {
+        if (this.loadingState) this.loadingState.style.display = 'none';
+        if (this.errorState) this.errorState.style.display = 'none';
+        if (this.emptyState) this.emptyState.style.display = 'flex';
+        if (this.employeeList) this.employeeList.style.display = 'none';
+    }
+    
+    renderEmployeeList() {
+        if (!this.employeeList) return;
+        
+        // Hide loading/error states
+        if (this.loadingState) this.loadingState.style.display = 'none';
+        if (this.errorState) this.errorState.style.display = 'none';
+        if (this.emptyState) this.emptyState.style.display = 'none';
+        
+        // Show list
+        this.employeeList.style.display = 'flex';
+        
+        // Clear existing items
+        this.employeeList.innerHTML = '';
+        
+        // Get current employee ID from taskManager
+        const currentEmpID = this.taskManager.currentEmpID;
+        
+        // Render each employee
+        this.employees.forEach(emp => {
+            const isCurrent = emp.empID === currentEmpID;
+            
+            const item = document.createElement('div');
+            item.className = 'switch-emp-item' + (isCurrent ? ' current' : '');
+            item.dataset.empId = emp.empID;
+            item.dataset.empName = emp.name;
+            
+            item.innerHTML = `
+                <div class="switch-emp-item-name">
+                    ${this.escapeHtml(emp.name)}
+                    ${isCurrent ? '<span class="switch-emp-item-badge">Current</span>' : ''}
+                </div>
+                <div class="switch-emp-item-id">ID: ${this.escapeHtml(emp.empID)}</div>
+            `;
+            
+            this.employeeList.appendChild(item);
+        });
+    }
+    
+    async selectEmployee(empID, empName) {
+        if (!empID || !empName) {
+            console.error("Invalid employee selection");
+            return;
+        }
+        
+        // Update taskManager's current employee
+        this.taskManager.currentEmpID = empID;
+        this.taskManager.currentEmpName = empName;
+        
+        // Save to localStorage
+        localStorage.setItem("currentEmpID", empID);
+        localStorage.setItem("currentEmpName", empName);
+        
+        console.log("Switched to employee:", empID, empName);
+        
+        // Reload tasks for the selected employee
+        await this.taskManager.loadTasksFromDatabase();
+        this.taskManager.renderTasks();
+        
+        // Close the modal
+        this.closeModal();
+    }
+    
+    // Utility function to escape HTML and prevent XSS
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+}
+
+
+
 // Initialize the modal after TaskManager is created
 // Modify the existing initialization section:
 // Replace: const app1 = new TaskManager();
@@ -1007,15 +1217,9 @@ class AssignTaskModal {
 
 const app1 = new TaskManager();
 const assignModal = new AssignTaskModal(app1);
+const switchEmpModal = new SwitchEmpModal(app1);  // <-- THIS WAS MISSING!
 
-// Rest of the code remains the same...
-//claude
-
-
-// reload on device minute change (fires at the next exact minute boundary, then every minute).
-// skips reload when user is actively typing in an input/textarea or an editable element
-// ...existing code...
-// reload on device minute change (fires at the next exact minute boundary, then every minute).
+// reload on device minute change
 (function scheduleMinuteReload() {
   let timeoutId = null;
 
@@ -1026,7 +1230,7 @@ const assignModal = new AssignTaskModal(app1);
   };
 
   const onBoundary = () => {
-    const active = document.activeElement;//returns dom elemtent that is currently focused
+    const active = document.activeElement;
     const inCobox = active && active.closest && active.closest('.cobox');
     const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable) && !inCobox;
     const anyPopupActive = !!document.querySelector('.popup.active, .reason_popup.active');
@@ -1039,13 +1243,9 @@ const assignModal = new AssignTaskModal(app1);
 
   scheduleNext();
 
-  // optional: expose cancel if needed for debugging
   window.cancelMinuteReload = () => {
     if (timeoutId) clearTimeout(timeoutId);
   };
 })();
-// first it estimates how much time before min is over. then it checks again but the default will always be 60 seconds
-// then it reloads
 
-// Export completeTask bound to app1 instance
 export const completeTask = app1.completeTask.bind(app1);
