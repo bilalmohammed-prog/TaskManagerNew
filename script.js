@@ -1,6 +1,6 @@
 // ------------------- UTILS -------------------
 let a = "useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict";
-export const nanoid = (e = 21) => {
+export const nanoid = (e = 10) => {
   let t = "", r = crypto.getRandomValues(new Uint8Array(e));
   for (let n = 0; n < e; n++) t += a[63 & r[n]];
   return t;
@@ -52,9 +52,9 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
     // single delegated click handler to avoid overlapping handlers and accidental dblclick deletes
     if (this.cobox) this.cobox.addEventListener('click', (e) => this.handleCoboxClick(e));
 
-    this.openpopup.addEventListener('click', () => this.popupGenerator());
-    this.closepopup.addEventListener("click", () => this.closepopupf());
-    this.confirm.addEventListener("click", () => this.endDayConfirm());
+    this.openpopup.addEventListener('click', () => this.endDayConfirm());
+    //this.closepopup.addEventListener("click", () => this.closepopupf());
+    //this.confirm.addEventListener("click", () => this.endDayConfirm());
     this.createEmpBtn.addEventListener("click",()=>this.createEmp());
     this.switchEmpBtn.addEventListener("click",()=>this.switchEmp());
     if (this.recordButton) this.recordButton.addEventListener('click', () => this.openRecordPopup());
@@ -245,7 +245,7 @@ async loadempID() {
 
   if (this.empDisplay) {
     if (this.currentEmpID && this.currentEmpName) {
-      this.empDisplay.innerHTML = `Hi, ${this.currentEmpName} (${this.currentEmpID})`;
+      this.empDisplay.innerHTML = `Name: ${this.currentEmpName} <br><br>ID: ${this.currentEmpID}`;
     } else {
       this.empDisplay.innerHTML = "No employee selected";
     }
@@ -680,62 +680,164 @@ this.empDisplay.innerHTML = "No employee selected";
     const data = await res.json();
     const collections = data.collections;
 
-    let html = "";
-
+    // Extract empID and system collections
+    const empIDCollection = collections.empID || [];
+    const systemCollections = {};
+    
+    // Gather all non-empID collections as "system" data
     for (const [collectionName, documents] of Object.entries(collections)) {
-      html += `<div style="margin-bottom: 20px;">
-        <strong style="font-size: 20px;">Collection: ${collectionName}</strong><br>`;
-
-      if (documents.length === 0) {
-        html += `<em>No documents in this collection</em>`;
-      } else {
-        // Detect type of collection by checking first document
-        const firstDoc = documents[0];
-
-        const isTaskCollection =
-          firstDoc.task !== undefined ||
-          firstDoc.startTime !== undefined ||
-          firstDoc.endTime !== undefined;
-
-        const isEmpCollection =
-          firstDoc.empID !== undefined &&
-          firstDoc.name !== undefined;
-
-        if (isTaskCollection) {
-          // Display tasks
-          documents.forEach((doc, index) => {
-            html += `<div style="margin-left: 15px; margin-top: 10px;">
-            <strong>Emp ID: ${doc.empID}</strong>
-              <strong>Task ${index + 1}:</strong> ${doc.task || 'N/A'}<br>
-              Time: ${doc.startTime || 'N/A'} - ${doc.endTime || 'N/A'}<br>
-              Status: ${doc.status || 'N/A'}<br>
-              ID: ${doc.id || doc._id || 'N/A'}<br>
-            </div>`;
-          });
-        } else if (isEmpCollection) {
-          // Display employee IDs
-          documents.forEach(doc => {
-            html += `<div style="margin-left: 15px; margin-top: 10px;">
-              <strong>Employee:</strong> ${doc.name} <br>
-              ID: ${doc.empID}<br>
-            </div>`;
-          });
-        } else {
-          // Unknown collection type — show raw JSON
-          documents.forEach(doc => {
-            html += `<pre style="margin-left: 15px; margin-top: 10px;">${JSON.stringify(doc, null, 2)}</pre>`;
-          });
-        }
+      if (collectionName === 'empID' || collectionName.startsWith('system.')) {
+        continue; // Skip empID and MongoDB system collections
       }
-
-      html += `</div><hr style="margin: 15px 0;">`;
+      systemCollections[collectionName] = documents;
     }
+
+    // Build the HTML output
+    let html = this.renderEmployeeSection(empIDCollection);
+    html += this.renderSystemSection(systemCollections, empIDCollection);
 
     this.recordContent.innerHTML = html || "<em>No collections found</em>";
   } catch (err) {
     console.error("Error fetching collections:", err);
     this.recordContent.innerHTML = `<em>Error loading collections: ${err.message}</em>`;
   }
+}
+
+/**
+ * Renders the Employee ID section
+ * @param {Array} empIDCollection - Array of employee objects with id and name
+ * @returns {string} HTML string for employee section
+ */
+renderEmployeeSection(empIDCollection) {
+  let html = `<div style="margin-bottom: 30px;">
+    <strong style="font-size: 22px; display: block; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px;">
+      Employee Collection
+    </strong>`;
+
+  if (!empIDCollection || empIDCollection.length === 0) {
+    html += `<em style="margin-left: 15px;">No employees found</em>`;
+  } else {
+    empIDCollection.forEach(employee => {
+      html += `<div style="margin-left: 15px; margin-top: 10px; padding: 8px; background-color: rgba(0,0,0,0.05); border-radius: 4px;">
+        <strong>${employee.name}</strong> <span style="color: rgba(0,0,0,0.6);">(ID: ${employee.empID})</span>
+      </div>`;
+    });
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+/**
+ * Renders the System section with tasks grouped by employee
+ * @param {Object} systemCollections - Object containing all system collections
+ * @param {Array} empIDCollection - Array of employee objects for name lookup
+ * @returns {string} HTML string for system section
+ */
+renderSystemSection(systemCollections, empIDCollection) {
+  // Create employee lookup map for quick name resolution
+  const employeeMap = new Map();
+  if (empIDCollection) {
+    empIDCollection.forEach(emp => {
+      employeeMap.set(emp.empID, emp.name);
+    });
+  }
+
+  let html = `<div style="margin-bottom: 30px;">
+    <strong style="font-size: 22px; display: block; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 8px;">
+      System Collection
+    </strong>`;
+
+  const collectionNames = Object.keys(systemCollections);
+  
+  if (collectionNames.length === 0) {
+    html += `<em style="margin-left: 15px;">No system collections found</em></div>`;
+    return html;
+  }
+
+  // Process each collection
+  collectionNames.forEach(collectionName => {
+    const documents = systemCollections[collectionName];
+    
+    if (!documents || documents.length === 0) {
+      html += `<div style="margin-left: 15px; margin-bottom: 20px;">
+        <strong style="font-size: 18px; color: rgba(0,0,0,0.7);">Collection: ${collectionName}</strong><br>
+        <em style="margin-left: 15px;">No tasks in this collection</em>
+      </div>`;
+      return;
+    }
+
+    // Group tasks by employee ID
+    const tasksByEmployee = this.groupTasksByEmployee(documents);
+
+    html += `<div style="margin-left: 15px; margin-bottom: 25px;">
+      <strong style="font-size: 18px; color: rgba(0,0,0,0.8); display: block; margin-bottom: 12px;">
+        Collection: ${collectionName}
+      </strong>`;
+
+    // Render each employee's tasks
+    const employeeIDs = Array.from(tasksByEmployee.keys()).sort();
+    
+    employeeIDs.forEach(empID => {
+      const employeeName = employeeMap.get(empID) || "Unknown Employee";
+      const tasks = tasksByEmployee.get(empID);
+
+      html += `<div style="margin-left: 20px; margin-bottom: 18px; padding: 12px; background-color: rgba(0,0,0,0.03); border-radius: 6px; border-left: 3px solid rgba(0,0,0,0.2);">
+        <strong style="font-size: 16px; display: block; margin-bottom: 10px;">
+          Employee: ${employeeName} <span style="color: rgba(0,0,0,0.6);">(ID: ${empID})</span>
+        </strong>`;
+
+      // Render each task for this employee
+      tasks.forEach((task, index) => {
+        html += this.renderTaskItem(task, index);
+      });
+
+      html += `</div>`; // Close employee div
+    });
+
+    html += `</div>`; // Close collection div
+  });
+
+  html += `</div>`; // Close system section
+  return html;
+}
+
+/**
+ * Groups task documents by employee ID
+ * @param {Array} documents - Array of task documents
+ * @returns {Map} Map of empID -> array of tasks
+ */
+groupTasksByEmployee(documents) {
+  const grouped = new Map();
+
+  documents.forEach(doc => {
+    const empID = doc.empID || "unassigned";
+    
+    if (!grouped.has(empID)) {
+      grouped.set(empID, []);
+    }
+    
+    grouped.get(empID).push(doc);
+  });
+
+  return grouped;
+}
+
+/**
+ * Renders a single task item
+ * @param {Object} task - Task document object
+ * @param {number} index - Task index for numbering
+ * @returns {string} HTML string for task item
+ */
+renderTaskItem(task, index) {
+  return `<div style="margin-left: 15px; margin-top: 8px; padding: 8px; background-color: rgba(255,255,255,0.5); border-radius: 4px;">
+    <strong style="font-size: 14px;">Task ${index + 1}:</strong> ${task.task || 'N/A'}<br>
+    <span style="font-size: 13px; color: rgba(0,0,0,0.7);">
+      Time: ${task.startTime || 'N/A'} - ${task.endTime || 'N/A'}<br>
+      Status: ${task.status || 'N/A'}<br>
+      ID: ${task.id || task._id || 'N/A'}
+    </span>
+  </div>`;
 }
 
 

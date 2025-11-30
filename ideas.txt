@@ -7,6 +7,11 @@ to display the work done
 
 4. make it so that we can toggle assigining and completign task menus
 
+5. when assign is clicked the tasks are sent to the employee
 
+7. System in which employee has to accept token from manager to become their employee
+this is done wehn add employee is clicked
 
 6.make it check that max time 24:00
+
+8. when employee is clicked, displays assigned tasks
