@@ -552,6 +552,19 @@ body::after {
     position:absolute;
     top:60px;
 }
+.switchEmp{
+    position:absolute;
+    top:120px;
+}
+.empDisplay{
+    position:absolute;
+    top:20px;
+    width:100px;
+    
+    font-family: 'Roboto', sans-serif;
+    color: rgb(245, 241, 237);
+    font-size:14px;
+}
 .record_btn:hover {
     background-color: rgba(255, 255, 255, 0.15);
     transition: background-color 0.2s ease, transform 0.2s ease;

@@ -13,6 +13,7 @@ class TaskManager {
   constructor() {
     // State
     this.info = JSON.parse(localStorage.getItem("info")) || [];
+    this.currentEmpID = null;
 
     // DOM elements
     this.reason_popup = document.querySelector(".reason_popup");
@@ -31,6 +32,7 @@ class TaskManager {
     this.recordCancel = document.querySelector(".record_cancel");
     this.recordContent = document.querySelector(".record_content");
     this.createEmpBtn=document.querySelector(".createEmp");
+    this.switchEmpBtn=document.querySelector(".switchEmp")
     // Bind events once
     this.bindEvents();
   }
@@ -52,6 +54,7 @@ class TaskManager {
     this.closepopup.addEventListener("click", () => this.closepopupf());
     this.confirm.addEventListener("click", () => this.endDayConfirm());
     this.createEmpBtn.addEventListener("click",()=>this.createEmp());
+    this.switchEmpBtn.addEventListener("click",()=>this.switchEmp());
     if (this.recordButton) this.recordButton.addEventListener('click', () => this.openRecordPopup());
     if (this.recordCancel) this.recordCancel.addEventListener("click", () => this.closeRecordPopup());
     // Handle Enter key in reason input via delegation (bind once)
@@ -179,6 +182,26 @@ async createEmp(){
         console.error("Error updating task status on server:", err);
       }
 }
+async switchEmp() {
+  try {
+    const res = await fetch("http://localhost:5500/switchEmp");
+    const data = await res.json();
+
+    const ids = data.employees.map(e => e.empID);
+    const chosen = prompt(`Enter employee ID:\n${ids.join("\n")}`);
+    if (!chosen) return;
+
+    this.currentEmpID = chosen;   // <-- SAVE EMPLOYEE ID
+    console.log("Switched to employee:", this.currentEmpID);
+
+    await this.loadTasksFromDatabase();
+    this.renderTasks();
+  } catch (err) {
+    console.error("Error switching employee:", err);
+  }
+}
+
+
 async loadempID() {
     try {
       // Use the endpoint that knows about the current collection on the server
@@ -239,11 +262,13 @@ async loadempID() {
   async generateTask(event) {
     if (event.key === 'Enter' && this.task.value && this.time.value) {
       let [startTime, endTime] = this.time.value.split("-").map(s => s.trim());
+      
       let id = nanoid();//setting id for each task
       let [hStr, mStr] = endTime.split(":");
       let hours = parseInt(hStr, 10);
       let mins = parseInt(mStr, 10);
       let obj={
+        empID: this.currentEmpID,
         id,
         startTime,
         endTime,
@@ -268,6 +293,7 @@ async loadempID() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              empID: taskObj.empID,
               id: taskObj.id,
               task: taskObj.task,
               startTime: taskObj.startTime,
@@ -364,6 +390,7 @@ async loadempID() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            empID: taskObj.empID,
             id: taskObj.id,
             task: taskObj.task,
             startTime: taskObj.startTime,
@@ -467,6 +494,7 @@ async loadempID() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            empID: taskObj.empID,
             id: item.id,
             task: item.task,
             startTime: item.startTime,
@@ -632,6 +660,7 @@ async loadempID() {
           // Display tasks
           documents.forEach((doc, index) => {
             html += `<div style="margin-left: 15px; margin-top: 10px;">
+            <strong>Emp ID: ${doc.empID}</strong>
               <strong>Task ${index + 1}:</strong> ${doc.task || 'N/A'}<br>
               Time: ${doc.startTime || 'N/A'} - ${doc.endTime || 'N/A'}<br>
               Status: ${doc.status || 'N/A'}<br>
@@ -863,6 +892,7 @@ class AssignTaskModal {
             
             // Create task object
             let obj = {
+              empID: this.taskManager.currentEmpID,
                 id,
                 startTime,
                 endTime,
@@ -891,6 +921,7 @@ class AssignTaskModal {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
+                          empID:taskObj.empID,
                             id: taskObj.id,
                             task: taskObj.task,
                             startTime: taskObj.startTime,

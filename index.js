@@ -45,6 +45,7 @@ app.use(express.json());
 })();
 //Schema
 const userSchema=new mongoose.Schema({
+  empID:{type:String,required:true},
   id:{type:String,required:true},
     task:{type:String,required:true},
     startTime:{type:String,required:true},
@@ -119,6 +120,7 @@ app.post("/addTask",async(req,res)=>{
     try{const body=req.body;
       const model=getModel();
     const result=await model.create({
+      empID: body.empID,
       id:body.id,
         task:body.task,
         startTime:body.startTime,
@@ -156,11 +158,12 @@ app.delete("/deleteTask", async (req, res) => {
 // ...existing code...
 app.put("/updateTask", async (req, res) => {
   try {
-    const { id, task, startTime, endTime, status } = req.body;
+    const {empID, id, task, startTime, endTime, status } = req.body;
     const model=getModel();
     
     // Build update object with only provided fields
     const updateFields = {};
+    updateFields.empID = empID;
     updateFields.task = task;
     updateFields.startTime = startTime;
     updateFields.endTime = endTime;
@@ -283,6 +286,15 @@ app.get("/getCurrentTasks", async (req, res) => {
 //displaying data
 
 //switching employee
-app.get("/switchEmp", async (req,res)=>{
-  const body=req.body;
-})
+app.get("/switchEmp", async (req, res) => {
+  try {
+    const employees = await empIDModel.find({}).lean();
+    return res.status(200).json({ employees });
+  } catch (err) {
+    console.error("Error fetching employee IDs:", err);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: err.message
+    });
+  }
+});
