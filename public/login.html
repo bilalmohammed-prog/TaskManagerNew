@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login</title>
+  <meta name="google-signin-client_id" content="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body { font-family: Roboto, Arial, sans-serif; background:#222; color:#fff; display:flex; align-items:center; justify-content:center; height:100vh }
+    .box{ background:#2f2f2f; padding:24px; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.6); }
+    .title{ margin-bottom:16px }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2 class="title">Sign in with Google</h2>
+    <div id="g_id_onload"
+         data-client_id="630500637702-hsmqq2g2b8inpilag210gvc8tfoa6chn.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
+  </div>
+
+  <script>
+    async function handleCredentialResponse(response) {
+      try {
+        const id_token = response.credential;
+        console.log('Got Google token, posting to /auth/google/token');
+        const res = await fetch('/auth/google/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_token }),
+        });
+        console.log('Response status:', res.status);
+        const text = await res.text();
+        console.log('Response text:', text);
+        if (!text) throw new Error('Server returned empty response');
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (jsonErr) {
+          console.error('Failed to parse JSON. Response text:', text);
+          throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`);
+        }
+        if (!res.ok) throw new Error(data.error || 'Login failed');
+        if (data.needsName) {
+          const name = prompt('Please enter your full name (required)');
+          if (!name) return alert('Name is required');
+          const complete = await fetch('/api/users/complete-profile', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name }),
+          });
+          let j;
+          try {
+            const completeText = await complete.text();
+            console.log('Profile completion response:', completeText);
+            j = JSON.parse(completeText);
+          } catch (jsonErr) {
+            console.error('Failed to parse profile completion JSON:', jsonErr);
+            throw new Error(`Server returned non-JSON response`);
+          }
+          if (!complete.ok) throw new Error(j.error || 'Profile completion failed');
+        }
+        window.location.href = '/dashboard';
+      } catch (err) {
+        console.error('Signin error:', err);
+        alert('Signin failed: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

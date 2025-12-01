@@ -5,6 +5,9 @@ import rules from './rules.js';
 import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
+import cookieParser from 'cookie-parser';
+import authRoutes from './server/routes/auth.js';
+import userRoutes from './server/routes/users.js';
 const app = express();
 import fs from "fs";
 import mongoose from "mongoose";
@@ -17,6 +20,7 @@ app.use(bodyParser.json());
 
 app.use(cors()); // allow all origins for testing
 app.use(express.json());
+app.use(cookieParser());
 
 //mongoDB
 
@@ -270,6 +274,10 @@ app.get("/getAllCollections", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Mount new auth/user routes (these use cookies for session)
+app.use(authRoutes);
+app.use(userRoutes);
 
 
 // Get tasks from current collection only
