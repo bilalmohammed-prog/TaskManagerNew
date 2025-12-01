@@ -1294,3 +1294,62 @@ body::after {
     display: none !important;
 }
 
+.container3.editing {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+}
+
+/* Inline edit controls styling */
+.container3.editing .edit-input,
+.container3.editing .edit-start,
+.container3.editing .edit-end {
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background-color: rgba(255,255,255,0.04);
+    color: #f5f5f5;
+    outline: none;
+}
+
+/* Make the main text input flexible so it expands to the left side of the cobox */
+.container3.editing .edit-input {
+    flex: 1 1 60%;
+    min-width: 120px;
+    margin-right: 8px;
+}
+
+/* Start/end inputs should be smaller and sit next to the main input */
+.container3.editing .edit-start,
+.container3.editing .edit-end {
+    flex: 0 0 90px;
+    text-align: center;
+}
+
+/* When editing, ensure the controls container stays at the right */
+.container3.editing .container2 {
+    margin-left: auto; /* push controls to the far right */
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Focus styles for clarity */
+.container3.editing .edit-input:focus,
+.container3.editing .edit-start:focus,
+.container3.editing .edit-end:focus {
+    border-color: rgba(68,255,136,0.9);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    background-color: rgba(255,255,255,0.06);
+}
+
+/* Smaller typography so the inline editor looks professional and compact */
+.container3 .taskText {
+    font-size: 15px;
+    color: rgb(245, 241, 237);
+}

@@ -471,6 +471,8 @@ async loadempID() {
     if (!btn) return;
 
     const container = btn.closest('.container3');
+    container.classList.add("editing");
+
     if (!container) return;
 
     const id = container.dataset.class;
@@ -481,10 +483,9 @@ async loadempID() {
     // avoid opening multiple editors on same item
     if (container.querySelector('.edit-input') || container.querySelector('.edit-start') || container.querySelector('.edit-end')) return;
 
-    // remove leading text nodes (the task/time text) so we can insert the inputs
-    Array.from(container.childNodes).forEach(node => {
-      if (node.nodeType === Node.TEXT_NODE) container.removeChild(node);
-    });
+    // Clear the task text area (don't remove buttons or other elements)
+    const taskTextDiv = container.querySelector('.taskText');
+    if (taskTextDiv) taskTextDiv.innerHTML = '';
 
     // create inline inputs: one for task, one for start time, one for end time
     const textInput = document.createElement('input');
@@ -502,12 +503,11 @@ async loadempID() {
     endInput.value = item.endTime;
     endInput.setAttribute('aria-label', 'Edit end time (HH:MM)');
 
-    // insert inputs before the first button so buttons remain visible
-    const firstButton = container.querySelector('button');
-    container.insertBefore(textInput, firstButton || null);//so para stays in place and search is under
-    container.insertBefore(startInput, firstButton || null);//parentNode.insertBefore(newNode, referenceNode);
-
-    container.insertBefore(endInput, firstButton || null);
+    // insert inputs before the controls container so the buttons remain visible
+    const controls = container.querySelector('.container2');
+    container.insertBefore(textInput, controls || null);
+    container.insertBefore(startInput, controls || null);
+    container.insertBefore(endInput, controls || null);
 
     // focus the task input first
     textInput.focus();
@@ -540,6 +540,8 @@ async loadempID() {
 
       // save locally and re-render
       this.save();
+      container.classList.remove("editing");
+
       this.renderTasks();
 
       // also persist updated task to backend
@@ -564,6 +566,8 @@ async loadempID() {
     };
 
     const cancelChanges = () => {
+      container.classList.remove("editing");
+
       this.renderTasks();
     };
 
