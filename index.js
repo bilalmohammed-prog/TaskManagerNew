@@ -11,16 +11,24 @@ import userRoutes from './server/routes/users.js';
 const app = express();
 import fs from "fs";
 import mongoose from "mongoose";
-const uri = process.env.uri;
+// Read and sanitize MongoDB URI from environment (strip surrounding quotes/spaces)
+const rawUri = process.env.uri;
+const uri = typeof rawUri === 'string' ? rawUri.trim().replace(/^['"]|['"]$/g, '') : rawUri;
 
 
 
 app.use(bodyParser.json());
 
 
-app.use(cors()); // allow all origins for testing
+// Allow cross-origin requests during development and support cookies when needed
+app.use(cors({ origin: true, credentials: true })); // reflect origin and allow credentials
 app.use(express.json());
 app.use(cookieParser());
+
+// Serve static files (login page, other public assets) so the client is served from the
+// same origin as the API. This prevents Google Identity 'authorization error blocked'
+// caused by loading `login.html` via file:// or another origin not registered with Google.
+app.use(express.static('public'));
 
 //mongoDB
 
@@ -37,11 +45,16 @@ app.use(cookieParser());
 
 (async () => {
   try {
+    if (!uri) {
+      console.error('MONGODB URI is missing or empty. Check .env `uri` value.');
+      process.exit(1);
+    }
     await mongoose.connect(uri);
-    console.log("Connected to MongoDB:", uri);
+    console.log("Connected to MongoDB");
 
     // start server only after DB connection
-    app.listen(5500, () => console.log("Server running on port 5500"));
+    const port = process.env.PORT || 5500;
+    app.listen(port, () => console.log(`Server running on port ${port}`));
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
     process.exit(1); // stop process to avoid buffered operations

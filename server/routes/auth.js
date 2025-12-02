@@ -93,6 +93,8 @@ router.post('/auth/google/token', async (req, res) => {
     return res.status(401).json({ error: 'Token verification failed', details: err.message });
   }
 });
+// After your fetch to /auth/google/token succeeds:
+
 
 router.post('/auth/logout', (req, res) => {
   res.clearCookie('session');
