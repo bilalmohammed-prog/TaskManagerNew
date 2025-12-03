@@ -1377,7 +1377,7 @@ document.querySelector(".managerAccess").addEventListener("click", () => {
   // <-- THIS WAS MISSING!
 
 // reload on device minute change
-(function scheduleMinuteReload() {
+/**(function scheduleMinuteReload() {
   let timeoutId = null;
 
   const scheduleNext = () => {
@@ -1403,6 +1403,5 @@ document.querySelector(".managerAccess").addEventListener("click", () => {
   window.cancelMinuteReload = () => {
     if (timeoutId) clearTimeout(timeoutId);
   };
-})();
+})();**/
 
-export const completeTask = app1.completeTask.bind(app1);

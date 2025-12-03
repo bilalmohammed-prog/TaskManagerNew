@@ -16,9 +16,6 @@ this is done wehn add employee is clicked
 
 8. when employee is clicked, displays assigned tasks
 
-9. ask copilot to write:
-    create cobox1, rsidebar1 such that when empAccess clicked these r displaye dand 
-    original coboz and rsidebar r hidden
-
+9.make it so that if not logged in through gmail, says not authorized
 
     

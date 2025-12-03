@@ -12,8 +12,8 @@ const app = express();
 import fs from "fs";
 import mongoose from "mongoose";
 // Read and sanitize MongoDB URI from environment (strip surrounding quotes/spaces)
-const rawUri = process.env.uri;
-const uri = typeof rawUri === 'string' ? rawUri.trim().replace(/^['"]|['"]$/g, '') : rawUri;
+const uri = process.env.uri;
+
 
 
 
@@ -115,7 +115,7 @@ app.put("/createEmp", async (req, res) => {
   }
 });
 
-let currentCollection = 'users';
+let currentCollection = 'system';
 try {
   const saved = JSON.parse(fs.readFileSync("./currentCollection.json", "utf8"));
   if (saved.name) {
