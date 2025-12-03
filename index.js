@@ -125,7 +125,7 @@ try {
 } catch (err) {
   console.log("No saved collection found, using default 'users'");
 }
-
+//
 function getModel() {
   if (mongoose.models[currentCollection]) {
     return mongoose.models[currentCollection];
@@ -298,7 +298,7 @@ app.get("/getCurrentTasks", async (req, res) => {
   try {
     const empID = req.query.empID;   // <---- get employee filter
     const model = getModel();
-
+    console.log("Current collection:", currentCollection);
     let filter = {};
     if (empID) filter.empID = empID;  // <---- apply filter if provided
 
