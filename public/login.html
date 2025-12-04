@@ -45,26 +45,19 @@
           console.error('Failed to parse JSON. Response text:', text);
           throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`);
         }
-        if (!res.ok) throw new Error(data.error || 'Login failed');
-        if (data.needsName) {
+        if (!data) throw new Error(data.error || 'Login failed');
+        if (!data.name) {
           const name = prompt('Please enter your full name (required)');
           if (!name) return alert('Name is required');
-          const complete = await fetch('/api/users/complete-profile', {
+          const complete = await fetch('http://localhost:5500/api/users/complete-profile', {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name }),
           });
-          let j;
-          try {
-            const completeText = await complete.text();
-            console.log('Profile completion response:', completeText);
-            j = JSON.parse(completeText);
-          } catch (jsonErr) {
-            console.error('Failed to parse profile completion JSON:', jsonErr);
-            throw new Error(`Server returned non-JSON response`);
-          }
-          if (!complete.ok) throw new Error(j.error || 'Profile completion failed');
+          
+          
+          
         }
         window.location.href = 'http://localhost:5500/index.html';
       } catch (err) {
