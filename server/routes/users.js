@@ -43,4 +43,27 @@ router.get('/api/users/me', requireAuth, async (req, res) => {
   }
 });
 
+router.put("/createEmp",requireAuth, async (req, res) => {
+  const body = req.body;
+    const email = body.email;
+    const managerID = body.managerID;
+  try {
+    const user = await User.findOne({
+  email: body.email}).exec();
+//
+    
+    if (!email) {
+      return res.status(400).json({ message: "email required" });
+    }
+
+    user.managerID = managerID;
+    await user.save();
+
+    return res.status(200).json({ message: "Employee added", data: user });
+  } catch (err) {
+    console.error("Error creating employee:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
 export default router;

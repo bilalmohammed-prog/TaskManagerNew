@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true, required: true },
   name: { type: String, default: null },
   empID: { type: String, unique: true, sparse: true },
+  managerID: { type: String, default: null },
   verified: { type: Boolean, default: false },
   roles: { type: [String], default: ['user'] },
   status: { type: String, default: 'active' },

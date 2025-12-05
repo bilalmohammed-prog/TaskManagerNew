@@ -93,27 +93,7 @@ app.get("/getempID", async (req, res) => {
   }
 });
 
-app.put("/createEmp", async (req, res) => {
-  try {
-    const body = req.body;
-    const id = body.id;
-    const name = body.name;
 
-    if (!id || !name) {
-      return res.status(400).json({ message: "id and name required" });
-    }
-
-    const emp = await empIDModel.create({
-      empID: id,
-      name: name
-    });
-
-    return res.status(200).json({ message: "Employee created", data: emp });
-  } catch (err) {
-    console.error("Error creating employee:", err);
-    return res.status(500).json({ message: "Server error", error: err.message });
-  }
-});
 
 let currentCollection = 'system';
 try {

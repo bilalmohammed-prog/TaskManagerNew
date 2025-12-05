@@ -165,20 +165,20 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
     }
   }
 async createEmp(){
-  const name=prompt("Enter name");
-  const id=nanoid();
+  const email=prompt("Enter email");
+  const managerID=prompt("Enter manager ID");
   try {
         const res = await fetch("http://localhost:5500/createEmp", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            id: id,
-            name: name
+            email: email,
+            managerID: managerID
           })
         });
         const result = await res.json();
         if (result.message) {
-          console.log("Complete task response:", result.message);
+          console.log("Complete task response:", result.data);
         }
         // Re-render to reflect any changes
         this.renderTasks();
