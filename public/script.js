@@ -37,6 +37,7 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
     this.createEmpBtn=document.querySelector(".createEmp");
     this.switchEmpBtn=document.querySelector(".switchEmp");
     this.empDisplay=document.querySelector(".empDisplay");
+    this.actualEmpDisplay=document.querySelector(".actualEmpDisplay");
     // Bind events once
     this.bindEvents();
   }
@@ -244,10 +245,14 @@ async loadempID() {
   renderTasks() {
     this.currentEmpID = localStorage.getItem("currentEmpID");
   this.currentEmpName = localStorage.getItem("currentEmpName");
+  this.actualEmpName = localStorage.getItem("actualEmpName");
+  this.actualEmpID = localStorage.getItem("actualEmpID");
 
   if (this.empDisplay) {
     if (this.currentEmpID && this.currentEmpName) {
-      this.empDisplay.innerHTML = `Name: ${this.currentEmpName} <br><br>ID: ${this.currentEmpID}`;
+      this.empDisplay.innerHTML = `Employee Name: ${this.currentEmpName} <br><br>Employee ID: ${this.currentEmpID}`
+      this.actualEmpDisplay.innerHTML = `<br><br>Logged in as:<br> ${this.actualEmpName}
+      <br><br>Your ID: ${this.actualEmpID}`;
     } else {
       this.empDisplay.innerHTML = "No employee selected";
     }
@@ -741,9 +746,36 @@ renderEmployeeSection(empIDCollection) {
     html += `<em style="margin-left: 15px;">No employees found</em>`;
   } else {
     empIDCollection.forEach(employee => {
-      html += `<div style="margin-left: 15px; margin-top: 10px; padding: 8px; background-color: rgba(0,0,0,0.05); border-radius: 4px;">
-        <strong>${employee.name}</strong> <span style="color: rgba(0,0,0,0.6);">(ID: ${employee.empID})</span>
-      </div>`;
+      html += `<div style="
+  margin: 15px 0;
+  padding: 12px;
+  background-color: rgba(0,0,0,0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.1);
+  font-family: Arial, sans-serif;
+  line-height: 1.4;
+">
+
+  <!-- Name + empID at top -->
+  <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">
+    ${employee.name} 
+    <span style="color: rgba(0,0,0,0.6);"> (ID: ${employee.empID})</span>
+  </div>
+
+  <!-- Details -->
+  <div style="font-size: 14px;">
+    <div><strong>Google ID:</strong> ${employee.googleId || "—"}</div>
+    <div><strong>Email:</strong> ${employee.email || "—"}</div>
+    <div><strong>Manager ID:</strong> ${employee.managerID || "—"}</div>
+    <div><strong>Verified:</strong> ${employee.verified}</div>
+    <div><strong>Status:</strong> ${employee.status}</div>
+    <div><strong>Last Login:</strong> ${employee.lastLoginAt ? new Date(employee.lastLoginAt).toLocaleString() : "—"}</div>
+    <div><strong>Created At:</strong> ${employee.createdAt ? new Date(employee.createdAt).toLocaleString() : "—"}</div>
+    <div><strong>Roles:</strong> ${employee.roles?.join(", ") || "—"}</div>
+  </div>
+
+</div>
+`;
     });
   }
 

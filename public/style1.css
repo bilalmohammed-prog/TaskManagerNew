@@ -561,15 +561,20 @@ body::after {
     position:absolute;
     
 }
-.empDisplay{
+.empDisplay,.actualEmpDisplay  {
     position:absolute;
     right:-50px;
-    top:20px;
     width:300px;
     font-weight: lighter;
     font-family: 'Roboto', sans-serif;
     color: rgb(245, 241, 237);
     font-size:18px;
+}
+.actualEmpDisplay{
+    top:0px;
+}
+.empDisplay{
+    top:500px;
 }
 .createEmp:hover,.switchEmp:hover,.inbox:hover,.empAccess:hover,.managerAccess:hover {
     background-color: rgba(255, 255, 255, 0.15);

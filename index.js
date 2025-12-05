@@ -255,7 +255,7 @@ app.get("/getAllCollections", async (req, res) => {
 
     for (const collection of collections) {
       const name = collection.name;
-      if (name.startsWith("system.")) continue;
+      
 
       const docs = await db.collection(name).find({}).toArray(); // native
       allCollectionsData[name] = docs;
