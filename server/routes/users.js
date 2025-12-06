@@ -1,6 +1,8 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
+import Invitation from '../models/invitation.js';
+import Notification from '../models/notification.js';
 
 const router = express.Router();
 
@@ -48,18 +50,33 @@ router.put("/createEmp",requireAuth, async (req, res) => {
     const email = body.email;
     const managerID = body.managerID;
   try {
-    const user = await User.findOne({
-  email: body.email}).exec();
-//
-    
-    if (!email) {
-      return res.status(400).json({ message: "email required" });
+    if (!email) return res.status(400).json({ message: 'email required' });
+
+    // prefer creating an invitation rather than assigning managerID directly
+    const senderUser = await User.findById(req.userId).lean();
+    if (!senderUser) return res.status(401).json({ message: 'Sender not found' });
+
+    const normalizedEmail = email.toLowerCase();
+    // prevent duplicate pending invite
+    const dup = await Invitation.findOne({ senderUserId: req.userId, receiverEmail: normalizedEmail, status: 'pending' }).lean();
+    if (dup) return res.status(409).json({ message: 'Pending invitation already exists' });
+
+    const invitation = await Invitation.create({
+      senderUserId: req.userId,
+      senderEmpID: req.userEmpID || senderUser.empID,
+      receiverEmail: normalizedEmail,
+      receiverEmpID: null,
+      message: `Invited via legacy createEmp route (managerID: ${managerID})`,
+      status: 'pending'
+    });
+
+    // notify receiver if they exist
+    const receiverUser = await User.findOne({ email: normalizedEmail }).lean();
+    if (receiverUser) {
+      await Notification.create({ userId: receiverUser._id, type: 'invitation_received', payload: { invitationId: invitation._id, senderEmpID: invitation.senderEmpID } });
     }
 
-    user.managerID = managerID;
-    await user.save();
-
-    return res.status(200).json({ message: "Employee added", data: user });
+    return res.status(201).json({ message: 'Invitation created', invitation });
   } catch (err) {
     console.error("Error creating employee:", err);
     return res.status(500).json({ message: "Server error", error: err.message });

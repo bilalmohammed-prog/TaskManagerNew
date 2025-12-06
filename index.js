@@ -8,6 +8,7 @@ import cors from "cors";
 import cookieParser from 'cookie-parser';
 import authRoutes from './server/routes/auth.js';
 import userRoutes from './server/routes/users.js';
+import invitationRoutes from './server/routes/invitations.js';
 const app = express();
 import fs from "fs";
 import mongoose from "mongoose";
@@ -271,6 +272,23 @@ app.get("/getAllCollections", async (req, res) => {
 // Mount new auth/user routes (these use cookies for session)
 app.use(authRoutes);
 app.use(userRoutes);
+app.use(invitationRoutes);
+
+// Debug-only: list all invitations (enable by setting DEBUG_INBOX=true in env)
+if (process.env.DEBUG_INBOX === 'true') {
+  import('./server/models/invitation.js').then(mod => {
+    const Invitation = mod.default;
+    app.get('/debug/invitations', async (req, res) => {
+      try {
+        const all = await Invitation.find({}).lean();
+        return res.json({ invitations: all });
+      } catch (err) {
+        console.error('debug invitations error', err);
+        return res.status(500).json({ error: err.message });
+      }
+    });
+  }).catch(err => console.error('Could not mount debug route', err));
+}
 
 
 // Get tasks from current collection only

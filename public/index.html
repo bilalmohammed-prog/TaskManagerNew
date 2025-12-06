@@ -181,6 +181,30 @@
             </div>
         </div>
 
+            <!-- Inbox Modal -->
+            <div class="inbox-modal-overlay" id="inboxModalOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000;">
+                <div class="inbox-modal" role="dialog" aria-labelledby="inboxTitle" aria-modal="true" style="width:90%; max-width:720px; margin:60px auto; background:#fff; border-radius:8px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,0.3);">
+                    <button id="closeInboxModalBtn" aria-label="Close inbox" style="float:right; background:none; border:none; font-size:20px;">×</button>
+                    <h2 id="inboxTitle">Inbox</h2>
+                    <p style="color:#666; margin-top:6px;">Pending invitations and notifications</p>
+
+                    <div style="display:flex; gap:12px; margin-top:12px;">
+                        <div style="flex:1; min-width:240px;">
+                            <h3 style="margin:6px 0 8px;">Received Invitations</h3>
+                            <div id="inboxReceivedList" style="max-height:320px; overflow:auto; border:1px solid #eee; padding:8px; border-radius:6px; background:#fafafa">Loading...</div>
+                        </div>
+                        <div style="flex:1; min-width:240px;">
+                            <h3 style="margin:6px 0 8px;">Sent Invitations</h3>
+                            <div id="inboxSentList" style="max-height:320px; overflow:auto; border:1px solid #eee; padding:8px; border-radius:6px; background:#fafafa">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div id="inboxFooter" style="margin-top:12px; text-align:right;">
+                        <button id="inboxRefreshBtn" style="padding:8px 12px;">Refresh</button>
+                    </div>
+                </div>
+            </div>
+
         <!-- Empty state -->
         <div class="switch-emp-empty" id="switchEmpEmpty" style="display: none;">
             <p>No employees found</p>

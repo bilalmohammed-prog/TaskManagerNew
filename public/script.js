@@ -6,6 +6,14 @@ export const nanoid = (e = 10) => {
   return t;
 };
 
+// Small utility used in several UI renderers
+function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
+  const div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
+
 
 
 // ------------------- TASK MANAGER CLASS -------------------
@@ -177,32 +185,30 @@ if (!email) {
   alert("Email is required.");
   return;
 }
-
-// Ask for manager ID
-const managerID = prompt("Enter manager ID");
-
-if (!managerID) {
-  alert("Manager ID is required.");
-  return;
-}
-  
+  const message = prompt("Optional message to include with the invitation (press Cancel to skip)") || '';
   try {
-        const res = await fetch("http://localhost:5500/createEmp", {
-          method: "PUT",
+        const res = await fetch("/api/invitations", {
+          method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: email,
-            managerID: managerID
+            receiverEmail: email,
+            message: message
           })
         });
-        const result = await res.json();
-        if (result.message) {
-          console.log("Complete task response:", result.data);
+        if (res.status === 201) {
+          const json = await res.json();
+          alert('Invitation sent');
+          console.log('Invitation created:', json.invitation);
+          // refresh manager's sent invites UI if present
+        } else {
+          const err = await res.json();
+          alert('Could not send invitation: ' + (err.error || err.message || res.status));
+          console.error('Invitation error', err);
         }
-        // Re-render to reflect any changes
-        this.renderTasks();
       } catch (err) {
-        console.error("Error updating task status on server:", err);
+        console.error("Error sending invitation to server:", err);
+        alert('Network error sending invitation');
       }
 }
 async switchEmp() {
@@ -748,6 +754,307 @@ this.empDisplay.innerHTML = "No employee selected";
     this.recordContent.innerHTML = `<em>Error loading collections: ${err.message}</em>`;
   }
 }
+
+  // ------------------- INVITATION / INBOX HELPERS -------------------
+  async managerInboxRefresh() {
+    try {
+      const res = await fetch('/api/invitations?sent=true', { credentials: 'include' });
+      if (!res.ok) {
+        console.error('Failed to load sent invitations', res.status);
+        return;
+      }
+      const data = await res.json();
+      console.log('Sent invitations:', data.invitations);
+      // Optionally render to a manager inbox UI when available
+    } catch (err) {
+      console.error('Error fetching manager inbox:', err);
+    }
+  }
+
+  // Simple receiver inbox flow using prompts (lightweight fallback UI)
+  async checkAndHandleReceivedInvitations() {
+    try {
+      const res = await fetch('/api/invitations?received=true', { credentials: 'include' });
+      if (!res.ok) {
+        console.error('Failed to load received invitations', res.status);
+        return;
+      }
+      const data = await res.json();
+      const invites = data.invitations || [];
+      for (const inv of invites) {
+        if (inv.status !== 'pending') continue;
+        const from = inv.senderEmpID || 'a manager';
+        const msg = inv.message ? `Message: ${inv.message}\n\n` : '';
+        const accept = confirm(`Invitation from ${from} to join as employee.\n${msg}Accept invitation?`);
+        if (accept) {
+          const r = await fetch(`/api/invitations/${inv._id}/respond`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'accept' })
+          });
+          if (r.ok) {
+            alert('Invitation accepted');
+            // reload tasks / employee info
+            await this.loadempID();
+            await this.loadTasksFromDatabase();
+            this.renderTasks();
+          } else {
+            const err = await r.json();
+            alert('Could not accept invitation: ' + (err.error || err.message || r.status));
+          }
+        } else {
+          const rj = await fetch(`/api/invitations/${inv._id}/respond`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'reject' })
+          });
+          if (rj.ok) alert('Invitation rejected');
+          else {
+            const err = await rj.json();
+            alert('Could not reject invitation: ' + (err.error || err.message || rj.status));
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error checking received invitations', err);
+    }
+  }
+
+  // ---------------- INBOX UI (modal) ----------------
+  openInboxModal() {
+    const overlay = document.getElementById('inboxModalOverlay');
+    if (!overlay) return;
+    console.log('openInboxModal called');
+    overlay.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    // render content
+    this.renderInbox();
+    // bind close
+    const closeBtn = document.getElementById('closeInboxModalBtn');
+    if (closeBtn) closeBtn.onclick = () => this.closeInboxModal();
+    const refreshBtn = document.getElementById('inboxRefreshBtn');
+    if (refreshBtn) refreshBtn.onclick = () => this.renderInbox();
+    // delegate accept/reject clicks
+    const receivedList = document.getElementById('inboxReceivedList');
+    if (receivedList) {
+      receivedList.onclick = async (e) => {
+        const btn = e.target.closest && e.target.closest('[data-inv-action]');
+        if (!btn) return;
+        const invId = btn.dataset.invId;
+        const action = btn.dataset.invAction;
+        if (!invId || !action) return;
+        try {
+          btn.disabled = true;
+          const res = await fetch(`/api/invitations/${invId}/respond`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            // refresh lists
+            await this.renderInbox();
+            if (action === 'accept') {
+              // reload tasks and emp list because managerID may be assigned
+              await this.loadempID();
+              await this.loadTasksFromDatabase();
+              this.renderTasks();
+            }
+          } else {
+            const err = await res.json().catch(()=>({ error: res.status }));
+            alert('Action failed: ' + (err.error || err.message || res.status));
+            btn.disabled = false;
+          }
+        } catch (err) {
+          console.error('Respond error', err);
+          alert('Network error');
+          btn.disabled = false;
+        }
+      };
+    }
+  }
+
+  closeInboxModal() {
+    const overlay = document.getElementById('inboxModalOverlay');
+    if (!overlay) return;
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  async renderInbox() {
+    // fetch received and sent invitations and render
+    const receivedContainer = document.getElementById('inboxReceivedList');
+    const sentContainer = document.getElementById('inboxSentList');
+    if (receivedContainer) receivedContainer.innerHTML = 'Loading...';
+    if (sentContainer) sentContainer.innerHTML = 'Loading...';
+    console.log('renderInbox: fetching invitations');
+    try {
+      const [r1, r2] = await Promise.all([
+        fetch('/api/invitations?received=true', { credentials: 'include' }),
+        fetch('/api/invitations?sent=true', { credentials: 'include' })
+      ]);
+
+      // handle unauthenticated quickly
+      if (r1.status === 401 || r2.status === 401) {
+        if (receivedContainer) receivedContainer.innerHTML = '<div style="padding:12px;color:#c00">Not signed in. Please <a href="/login.html">sign in</a> to view your inbox.</div>';
+        if (sentContainer) sentContainer.innerHTML = '<div style="padding:12px;color:#c00">Not signed in. Please <a href="/login.html">sign in</a> to view sent invitations.</div>';
+        return;
+      }
+
+      if (!r1.ok) throw new Error('Failed loading received');
+      if (!r2.ok) throw new Error('Failed loading sent');
+
+      const text1 = await r1.text().catch(()=>null);
+      const text2 = await r2.text().catch(()=>null);
+      console.log('invitations received raw:', r1.status, text1);
+      console.log('invitations sent raw:', r2.status, text2);
+      let d1 = {};
+      let d2 = {};
+      try { d1 = text1 ? JSON.parse(text1) : {}; } catch(e) { console.error('parse d1', e); }
+      try { d2 = text2 ? JSON.parse(text2) : {}; } catch(e) { console.error('parse d2', e); }
+      const invites = d1.invitations || [];
+      const sent = d2.invitations || [];
+
+      // render received
+      if (receivedContainer) {
+        if (invites.length === 0) {
+          receivedContainer.innerHTML = '<div style="padding:12px;color:#666">No invitations</div>';
+        } else {
+          receivedContainer.innerHTML = invites.map(inv => {
+            const created = new Date(inv.createdAt).toLocaleString();
+            const status = inv.status || 'pending';
+            const from = inv.senderEmpID || 'manager';
+            const msg = inv.message ? `<div style="margin-top:6px;color:#333">${escapeHtml(inv.message)}</div>` : '';
+            const actions = status === 'pending' ? `\n<div style="margin-top:8px"><button data-inv-id="${inv._id}" data-inv-action="accept">Accept</button> <button data-inv-id="${inv._id}" data-inv-action="reject">Reject</button></div>` : `<div style="margin-top:8px;color:#777">${status.toUpperCase()}${inv.respondedAt? ' • ' + new Date(inv.respondedAt).toLocaleString(): ''}</div>`;
+            return `<div style="border-bottom:1px solid #eee; padding:8px"> <div><strong>${escapeHtml(from)}</strong> <span style="color:#888">• ${created}</span></div> ${msg} ${actions} </div>`;
+          }).join('');
+        }
+      }
+
+      // render sent
+      if (sentContainer) {
+        if (sent.length === 0) {
+          sentContainer.innerHTML = '<div style="padding:12px;color:#666">No sent invitations</div>';
+        } else {
+          sentContainer.innerHTML = sent.map(inv => {
+            const created = new Date(inv.createdAt).toLocaleString();
+            const status = inv.status || 'pending';
+            const to = inv.receiverEmail || inv.receiverEmpID || 'recipient';
+            const note = inv.message ? `<div style="margin-top:6px;color:#333">${escapeHtml(inv.message)}</div>` : '';
+            return `<div style="border-bottom:1px solid #eee; padding:8px"> <div><strong>To: ${escapeHtml(to)}</strong> <span style="color:#888">• ${created}</span></div>${note}<div style="margin-top:8px;color:#777">${status.toUpperCase()}${inv.respondedAt? ' • ' + new Date(inv.respondedAt).toLocaleString(): ''}</div></div>`;
+          }).join('');
+        }
+      }
+
+    } catch (err) {
+      console.error('Inbox render error', err);
+      if (receivedContainer) receivedContainer.innerHTML = '<div style="padding:12px;color:#c00">Error loading inbox</div>';
+      if (sentContainer) sentContainer.innerHTML = '<div style="padding:12px;color:#c00">Error loading sent</div>';
+    }
+  }
+
+  // Render invitations directly into the main `.cobox` area (used when Inbox sidebar clicked)
+  async renderInboxToCobox() {
+    if (!this.cobox) return console.warn('cobox element not found');
+    this.cobox.innerHTML = '<div style="padding:12px;color:#666">Loading inbox...</div>';
+    try {
+      const [r1, r2] = await Promise.all([
+        fetch('/api/invitations?received=true', { credentials: 'include' }),
+        fetch('/api/invitations?sent=true', { credentials: 'include' })
+      ]);
+
+      if (r1.status === 401 || r2.status === 401) {
+        this.cobox.innerHTML = '<div style="padding:12px;color:#c00">Not signed in. Please <a href="/login.html">sign in</a> to view your inbox.</div>';
+        return;
+      }
+
+      const d1 = await r1.json().catch(() => ({}));
+      const d2 = await r2.json().catch(() => ({}));
+      const invites = d1.invitations || [];
+      const sent = d2.invitations || [];
+
+      // build HTML
+      let html = '<div style="padding:12px">';
+      html += '<h3 style="margin:6px 0">Received Invitations</h3>';
+      if (invites.length === 0) html += '<div style="color:#666">No invitations received</div>';
+      else {
+        invites.forEach(inv => {
+          const created = inv.createdAt ? new Date(inv.createdAt).toLocaleString() : '';
+          const status = inv.status || 'pending';
+          const from = inv.senderEmpID || 'manager';
+          html += `<div style="border:1px solid #eee;padding:8px;margin:8px 0;border-radius:6px;background:#fff;color:#000">`;
+          html += `<div><strong>From:</strong> ${escapeHtml(from)} <span style="color:#888">• ${created}</span></div>`;
+          if (inv.message) html += `<div style="margin-top:6px">${escapeHtml(inv.message)}</div>`;
+          if (status === 'pending') {
+            html += `<div style="margin-top:8px"><button data-inv-id="${inv._id}" data-inv-action="accept">Accept</button> <button data-inv-id="${inv._id}" data-inv-action="reject">Reject</button></div>`;
+          } else {
+            html += `<div style="margin-top:8px;color:#666">${status.toUpperCase()}${inv.respondedAt? ' • ' + new Date(inv.respondedAt).toLocaleString(): ''}</div>`;
+          }
+          html += '</div>';
+        });
+      }
+
+      html += '<h3 style="margin:6px 0">Sent Invitations</h3>';
+      if (sent.length === 0) html += '<div style="color:#666">No sent invitations</div>';
+      else {
+        sent.forEach(inv => {
+          const created = inv.createdAt ? new Date(inv.createdAt).toLocaleString() : '';
+          const status = inv.status || 'pending';
+          const to = inv.receiverEmail || inv.receiverEmpID || 'recipient';
+          html += `<div style="border:1px solid #eee;padding:8px;margin:8px 0;border-radius:6px;background:#fff;color:#000">`;
+          html += `<div><strong>To:</strong> ${escapeHtml(to)} <span style="color:#888">• ${created}</span></div>`;
+          if (inv.message) html += `<div style="margin-top:6px">${escapeHtml(inv.message)}</div>`;
+          html += `<div style="margin-top:8px;color:#666">${status.toUpperCase()}${inv.respondedAt? ' • ' + new Date(inv.respondedAt).toLocaleString(): ''}</div>`;
+          html += '</div>';
+        });
+      }
+
+      html += '</div>';
+      this.cobox.innerHTML = html;
+
+      // delegate buttons inside cobox for accept/reject
+      this.cobox.onclick = async (e) => {
+        const btn = e.target.closest && e.target.closest('[data-inv-action]');
+        if (!btn) return;
+        const invId = btn.dataset.invId;
+        const action = btn.dataset.invAction;
+        if (!invId || !action) return;
+        try {
+          btn.disabled = true;
+          const res = await fetch(`/api/invitations/${invId}/respond`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action })
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(()=>({ error: res.status }));
+            alert('Action failed: ' + (err.error || err.message || res.status));
+            btn.disabled = false;
+            return;
+          }
+          // refresh cobox
+          await this.renderInboxToCobox();
+          if (action === 'accept') {
+            await this.loadempID();
+            await this.loadTasksFromDatabase();
+            this.renderTasks();
+          }
+        } catch (err) {
+          console.error('Respond error', err);
+          alert('Network error');
+          btn.disabled = false;
+        }
+      };
+
+    } catch (err) {
+      console.error('renderInboxToCobox error', err);
+      this.cobox.innerHTML = '<div style="padding:12px;color:#c00">Error loading inbox</div>';
+    }
+  }
 
 /**
  * Renders the Employee ID section
@@ -1407,9 +1714,19 @@ function showSection(section) {
 
 
 
-document.querySelector(".inbox").addEventListener("click", () => {
-    showSection("tasks");
+// ensure inbox button is bound after DOM and app1 initialization
+window.addEventListener('load', () => {
+  const inboxBtn = document.querySelector('.inbox');
+  if (!inboxBtn) return;
+  inboxBtn.removeEventListener && inboxBtn.removeEventListener('click', () => {});
+  inboxBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    // Render invitations into the main content area (cobox)
+    if (app1 && typeof app1.renderInboxToCobox === 'function') return app1.renderInboxToCobox();
+    // fallback
+    showSection('tasks');
     location.reload();
+  });
 });
 
 document.querySelector(".empAccess").addEventListener("click", () => {
