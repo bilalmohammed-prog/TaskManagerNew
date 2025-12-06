@@ -128,9 +128,14 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
 
   // ------------------- CORE METHODS -------------------
   async loadTasksFromDatabase() {
-    
+    let retrieveFrom = "";
+    if (this.currentSection==="employees"){
+      retrieveFrom = this.actualEmpID || localStorage.getItem("actualEmpID") || "";
+    }else if(this.currentSection==="manager"){
+      retrieveFrom=this.currentEmpID;
+    }
     try {
-    const res = await fetch(`http://localhost:5500/getCurrentTasks?empID=${this.currentEmpID || ""}`, {
+    const res = await fetch(`http://localhost:5500/getCurrentTasks?empID=${retrieveFrom}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" }
     });
@@ -166,8 +171,21 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
     }
   }
 async createEmp(){
-  const email=prompt("Enter email");
-  const managerID=prompt("Enter manager ID");
+  const email = prompt("Enter email");
+
+if (!email) {
+  alert("Email is required.");
+  return;
+}
+
+// Ask for manager ID
+const managerID = prompt("Enter manager ID");
+
+if (!managerID) {
+  alert("Manager ID is required.");
+  return;
+}
+  
   try {
         const res = await fetch("http://localhost:5500/createEmp", {
           method: "PUT",
@@ -1311,9 +1329,13 @@ class SwitchEmpModal {
         
         // Get current employee ID from taskManager
         const currentEmpID = this.taskManager.currentEmpID;
+        const actualEmpID = localStorage.getItem("actualEmpID");
         
-        // Render each employee
+        // Render each employee (excluding the logged-in user)
         this.employees.forEach(emp => {
+            // Skip if this is the logged-in user
+            if (emp.empID === actualEmpID) return;
+            
             const isCurrent = emp.empID === currentEmpID;
             
             const item = document.createElement('div');
