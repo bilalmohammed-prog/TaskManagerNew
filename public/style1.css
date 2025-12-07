@@ -588,7 +588,7 @@ body::after {
 }
 
 
-.record_btn svg, .managerAccess svg, .inbox svg, .createEmp svg, .switchEmp svg, .endDay svg {
+.record_btn svg, .managerAccess svg, .inbox svg, .createEmp svg, .switchEmp svg, .endDay svg , .progress svg{
     height: 60%;
     width: 100%;
     display: block;

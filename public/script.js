@@ -27,6 +27,7 @@ class TaskManager {
 this.currentEmpName = localStorage.getItem("currentEmpName") || null;
 
     // DOM elements
+    this.progress = document.querySelector(".progress");
     this.reason_popup = document.querySelector(".reason_popup");
     this.rcancel = document.querySelector(".rcancel");
     this.task = document.querySelector('.task');
@@ -68,6 +69,7 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
     //this.confirm.addEventListener("click", () => this.endDayConfirm());
     this.createEmpBtn.addEventListener("click",()=>this.createEmp());
     this.switchEmpBtn.addEventListener("click",()=>this.switchEmp());
+    this.progress.addEventListener("click", () => this.progressDisplay());
     if (this.recordButton) this.recordButton.addEventListener('click', () => this.openRecordPopup());
     if (this.recordCancel) this.recordCancel.addEventListener("click", () => this.closeRecordPopup());
     // Handle Enter key in reason input via delegation (bind once)
@@ -133,6 +135,123 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
       return;
     }
   }
+  //Progress
+progressDisplay(){
+showSection("progress");
+this.progressDisplayReload();
+}
+
+async progressDisplayReload() {
+  this.cobox.innerHTML = "";
+  this.cobox.innerHTML = `<div style="padding:12px;color:#666">Loading progress...</div>`;
+
+  try {
+    const managerID = localStorage.getItem("actualEmpID");
+    if (!managerID) {
+      this.cobox.innerHTML = "<div style='color:red'>Manager not logged in</div>";
+      return;
+    }
+
+    const res = await fetch("http://localhost:5500/getAllCollections");
+    const data = await res.json();
+
+    const employees = data.collections.empID || [];
+    const systemCollections = data.collections;
+
+    // ✅ Get only employees working under this manager
+    const myEmployees = employees.filter(emp => emp.managerID === managerID);
+
+    if (myEmployees.length === 0) {
+      this.cobox.innerHTML = "<div>No employees under you</div>";
+      return;
+    }
+
+    // ✅ Collect all tasks from all system task collections
+    let allTasks = [];
+    for (const [key, docs] of Object.entries(systemCollections)) {
+      if (key !== "empID" && !key.startsWith("system.")) {
+        allTasks.push(...docs);
+      }
+    }
+
+    const totalCompanyTasks = allTasks.filter(t => 
+  myEmployees.some(e => e.empID === t.empID)
+);
+
+const totalCompletedCompanyTasks = totalCompanyTasks.filter(t => t.status === "complete").length;
+
+const companyPercent = totalCompanyTasks.length === 0 
+  ? 0 
+  : Math.round((totalCompletedCompanyTasks / totalCompanyTasks.length) * 100);
+
+let html = `
+  <h2 style="margin-bottom:15px">Employee Progress</h2>
+
+  <!-- ✅ COMBINED TEAM PROGRESS (SAME STYLE AS OTHERS) -->
+  <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
+    
+    <div style="font-weight:bold;margin-bottom:6px">
+      Combined Team (All Employees)
+    </div>
+
+    <div style="font-size:13px;margin-bottom:6px">
+      ${totalCompletedCompanyTasks} / ${totalCompanyTasks.length} tasks completed
+    </div>
+
+    <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
+      <div style="
+        height:100%;
+        width:${companyPercent}%;
+        background:linear-gradient(90deg,#00c853,#64dd17);
+        transition:width 0.4s;
+      "></div>
+    </div>
+
+    <div style="font-size:12px;margin-top:4px">${companyPercent}%</div>
+  </div>
+`;
+
+
+    myEmployees.forEach(emp => {
+      const empTasks = allTasks.filter(t => t.empID === emp.empID);
+      const total = empTasks.length;
+      const completed = empTasks.filter(t => t.status === "complete").length;
+      const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+      html += `
+        <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
+          
+          <div style="font-weight:bold;margin-bottom:6px">
+            ${emp.name} (ID: ${emp.empID})
+          </div>
+
+          <div style="font-size:13px;margin-bottom:6px">
+            ${completed} / ${total} tasks completed
+          </div>
+
+          <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
+            <div style="
+              height:100%;
+              width:${percent}%;
+              background:linear-gradient(90deg,#00c853,#64dd17);
+              transition:width 0.4s;
+            "></div>
+          </div>
+
+          <div style="font-size:12px;margin-top:4px">${percent}%</div>
+        </div>
+      `;
+    });
+
+    this.cobox.innerHTML = html;
+
+  } catch (err) {
+    console.error("Progress load error:", err);
+    this.cobox.innerHTML = "<div style='color:red'>Failed to load progress</div>";
+  }
+}
+
+  //Progress
 
   // ------------------- CORE METHODS -------------------
   async loadTasksFromDatabase() {
@@ -141,6 +260,8 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
       retrieveFrom = this.actualEmpID || localStorage.getItem("actualEmpID") || "";
     }else if(this.currentSection==="manager"){
       retrieveFrom=this.currentEmpID;
+    }else if(this.currentSection==="inbox"){
+      this.managerInboxRefresh();
     }
     try {
     const res = await fetch(`http://localhost:5500/getCurrentTasks?empID=${retrieveFrom}`, {
@@ -1698,11 +1819,18 @@ const assignModal = new AssignTaskModal(app1);
 const switchEmpModal = new SwitchEmpModal(app1);
 //switching sections
 window.addEventListener("load", () => {
-    const section = localStorage.getItem("currentSection") || "tasks";
+    const section = localStorage.getItem("currentSection") || "manager";
     showSection(section);
-    
-    app1.renderTasks();
+
+    if (section === "inbox") {
+        app1.renderInboxToCobox();
+    }else if(section==="progress"){
+app1.progressDisplayReload();
+    } else {
+        app1.renderTasks();
+    }
 });
+
 
 function showSection(section) {
     localStorage.setItem("currentSection", section);
@@ -1719,14 +1847,12 @@ window.addEventListener('load', () => {
   const inboxBtn = document.querySelector('.inbox');
   if (!inboxBtn) return;
   inboxBtn.removeEventListener && inboxBtn.removeEventListener('click', () => {});
-  inboxBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    // Render invitations into the main content area (cobox)
-    if (app1 && typeof app1.renderInboxToCobox === 'function') return app1.renderInboxToCobox();
-    // fallback
-    showSection('tasks');
-    location.reload();
-  });
+  inboxBtn.addEventListener('click', async (e) => {
+  e.preventDefault();
+  showSection("inbox");
+  app1.renderInboxToCobox();
+});
+
 });
 
 document.querySelector(".empAccess").addEventListener("click", () => {
