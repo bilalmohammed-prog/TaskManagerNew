@@ -480,6 +480,7 @@ async loadempID() {
         mins,
         task: this.task.value,
         sta: "pending",
+        proof:"",
         overdue: false
       }
       this.info.push(obj);
@@ -502,7 +503,8 @@ async loadempID() {
               task: taskObj.task,
               startTime: taskObj.startTime,
               endTime: taskObj.endTime,
-              status: taskObj.sta
+              status: taskObj.sta,
+              proof: taskObj.proof
             })
           });
           
@@ -559,36 +561,25 @@ async loadempID() {
     const id = btn.dataset.class;
     const taskObj = this.info.find(item => item.id === id);
     
+    // Check if task exists first
     if (!taskObj) {
-      console.warn("Task not found in local state with id:", id, "- updating database only");
-      // Task might exist in database but not in local state
-      // Try to update database with status toggle (backend now supports partial updates)
-      try {
-        const res = await fetch("http://localhost:5500/updateTask", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id: id,
-            status: "complete" // Set to complete (backend will handle partial update)
-          })
-        });
-        const result = await res.json();
-        if (result.message) {
-          console.log("Complete task response:", result.message);
-        }
-        // Re-render to reflect any changes
-        this.renderTasks();
-      } catch (err) {
-        console.error("Error updating task status on server:", err);
-      }
+      console.warn("Task not found in local state with id:", id);
       return;
     }
     
+    // Handle status toggle
+    if (taskObj.sta === "complete") {
+      taskObj.sta = "pending";
+      taskObj.proof = ""; // Clear proof when marking as pending
+    } else if (taskObj.sta === "pending") {
+      const proof = prompt("Please provide proof of completion (e.g., github link):");
+      if (!proof) return; // User cancelled or provided empty proof
+      taskObj.proof = proof;
+      taskObj.sta = "complete";
+    }
+    
+    // Update database (only if task is not overdue)
     if (!taskObj.overdue) {
-      const newStatus = (taskObj.sta === "pending") ? "complete" : "pending";
-      taskObj.sta = newStatus;
-      
-      // Update database
       try {
         const res = await fetch("http://localhost:5500/updateTask", {
           method: "PUT",
@@ -599,7 +590,8 @@ async loadempID() {
             task: taskObj.task,
             startTime: taskObj.startTime,
             endTime: taskObj.endTime,
-            status: taskObj.sta
+            status: taskObj.sta,
+            proof: taskObj.proof || "" // Ensure proof is always defined
           })
         });
         const result = await res.json();
@@ -611,7 +603,7 @@ async loadempID() {
     
     this.save();
     this.renderTasks();
-  }
+}
 
   //update
   // ...existing code...
@@ -1574,7 +1566,8 @@ class AssignTaskModal {
                             task: taskObj.task,
                             startTime: taskObj.startTime,
                             endTime: taskObj.endTime,
-                            status: taskObj.sta
+                            status: taskObj.sta,
+                            proof:taskObj.proof
                         })
                     });
                     

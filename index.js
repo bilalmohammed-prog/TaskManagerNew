@@ -69,6 +69,7 @@ const userSchema=new mongoose.Schema({
     startTime:{type:String,required:true},
     endTime:{type:String,required:true},
     status:{type:String,required:true},
+    proof:{type:String,required:false}
   
 })
 
@@ -123,8 +124,8 @@ app.post("/addTask",async(req,res)=>{
         task:body.task,
         startTime:body.startTime,
         endTime:body.endTime,
-        status:body.status
-        
+        status:body.status,
+        proof:body.proof
     })
     console.log("result:",result);
     return res.status(200).json({message:"Task added successfully",data:result});
@@ -156,7 +157,7 @@ app.delete("/deleteTask", async (req, res) => {
 // ...existing code...
 app.put("/updateTask", async (req, res) => {
   try {
-    const {empID, id, task, startTime, endTime, status } = req.body;
+    const {empID, id, task, startTime, endTime, status,proof } = req.body;
     const model=getModel();
     
     // Build update object with only provided fields
@@ -166,6 +167,7 @@ app.put("/updateTask", async (req, res) => {
     updateFields.startTime = startTime;
     updateFields.endTime = endTime;
     updateFields.status = status;
+    updateFields.proof = proof;
     
     // update the document and return the updated document
     const updated = await model.findOneAndUpdate(
