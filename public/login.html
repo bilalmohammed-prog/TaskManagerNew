@@ -59,11 +59,12 @@
           
           
         }
-        window.location.href = 'http://localhost:5500/index.html';
+        
         const actualEmpName=data.name;
         const actualEmpID=data.empID;
         localStorage.setItem("actualEmpName", actualEmpName);
         localStorage.setItem("actualEmpID", actualEmpID);
+        window.location.href = 'http://localhost:5500/index.html';
       } catch (err) {
         console.error('Signin error:', err);
         alert('Signin failed: ' + err.message);

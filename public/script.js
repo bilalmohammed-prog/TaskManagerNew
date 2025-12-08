@@ -44,6 +44,7 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
     this.recordCancel = document.querySelector(".record_cancel");
     this.recordContent = document.querySelector(".record_content");
     this.createEmpBtn=document.querySelector(".createEmp");
+    this.assignTaskBtn=document.querySelector(".assign-task-btn");
     this.switchEmpBtn=document.querySelector(".switchEmp");
     this.empDisplay=document.querySelector(".empDisplay");
     this.actualEmpDisplay=document.querySelector(".actualEmpDisplay");
@@ -392,7 +393,19 @@ async loadempID() {
   this.currentEmpName = localStorage.getItem("currentEmpName");
   this.actualEmpName = localStorage.getItem("actualEmpName");
   this.actualEmpID = localStorage.getItem("actualEmpID");
-
+if (this.currentSection!=="manager"){
+  if (this.createEmpBtn) this.createEmpBtn.style.display = 'none';
+    if (this.switchEmpBtn) this.switchEmpBtn.style.display = 'none';
+    if (this.openpopup) this.openpopup.style.display = 'none';
+    if (this.assignTaskBtn) this.assignTaskBtn.style.display = 'none';
+    if (this.empDisplay) this.empDisplay.style.display = 'none';
+}else{
+  if (this.createEmpBtn) this.createEmpBtn.style.display = 'block';
+    if (this.switchEmpBtn) this.switchEmpBtn.style.display = 'block';
+    if (this.openpopup) this.openpopup.style.display = 'block';
+    if (this.assignTaskBtn) this.assignTaskBtn.style.display = 'block';
+    if (this.empDisplay) this.empDisplay.style.display = 'block';
+}
   if (this.empDisplay) {
     if (this.currentEmpID && this.currentEmpName) {
       this.empDisplay.innerHTML = `Employee Name: ${this.currentEmpName} <br><br>Employee ID: ${this.currentEmpID}`
@@ -1073,6 +1086,7 @@ this.empDisplay.innerHTML = "No employee selected";
   async renderInboxToCobox() {
     if (!this.cobox) return console.warn('cobox element not found');
     this.cobox.innerHTML = '<div style="padding:12px;color:#666">Loading inbox...</div>';
+    
     try {
       const [r1, r2] = await Promise.all([
         fetch('/api/invitations?received=true', { credentials: 'include' }),
