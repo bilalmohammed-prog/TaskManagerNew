@@ -541,7 +541,7 @@ body::after {
 
 
 
-.record_btn,.assign-task-btn,.createEmp,.switchEmp,.inbox,.empAccess,.managerAccess {
+.record_btn,.assign-task-btn,.createEmp,.switchEmp,.inbox,.empAccess,.managerAccess, .draft {
     height:35px;
     width:35px;
     border: none;
@@ -576,7 +576,7 @@ body::after {
 .empDisplay{
     top:500px;
 }
-.createEmp:hover,.switchEmp:hover,.inbox:hover,.empAccess:hover,.managerAccess:hover {
+.createEmp:hover,.switchEmp:hover,.inbox:hover,.empAccess:hover,.managerAccess:hover, .draft:hover {
     background-color: rgba(255, 255, 255, 0.15);
     transition: background-color 0.2s ease, transform 0.2s ease;
     transform: scale(1.3);
@@ -588,7 +588,7 @@ body::after {
 }
 
 
-.record_btn svg, .managerAccess svg, .inbox svg, .createEmp svg, .switchEmp svg, .endDay svg , .progress svg{
+.record_btn svg, .managerAccess svg, .inbox svg, .createEmp svg, .switchEmp svg, .endDay svg , .progress svg, .draft svg{
     height: 60%;
     width: 100%;
     display: block;
@@ -1357,4 +1357,123 @@ body::after {
 .container3 .taskText {
     font-size: 15px;
     color: rgb(245, 241, 237);
+}
+
+
+.draft{
+    position:absolute;
+    left:130px;
+}
+
+.draftPopup{
+    position:fixed;
+    width:400px;
+    height:300px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    z-index:1000;
+    position:absolute;
+    border-radius:8px;
+    border:rgb(245, 255, 131) 3px solid;
+    background-color: rgb(245, 255, 131);
+    border:rgb(0, 0, 0) 3px solid;
+    font-size:18px;
+    font-family: 'Roboto', sans-serif;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    
+}
+/* ================= DRAFT POPUP ================= */
+.draft-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 2000;
+}
+
+.draft-modal-overlay.active {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.draft-modal {
+  width: 420px;
+  background: #ffffff;
+  padding: 18px 22px;
+  border-radius: 10px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.25);
+  position: relative;
+  animation: popupFade 0.25s ease;
+}
+
+@keyframes popupFade {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.draft-modal-close {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.draft-title {
+  margin-top: 5px;
+  margin-bottom: 14px;
+  font-size: 24px;
+  color: #000;
+}
+
+.draft-label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin-top: 10px;
+  display: block;
+}
+
+.draft-input,
+.draft-textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.draft-textarea {
+  height: 120px;
+  resize: none;
+}
+
+.draft-actions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.draft-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+
+.draft-cancel {
+  background: #bbb;
+}
+
+.draft-send {
+  background: rgb(68, 255, 136);
+  font-weight: bold;
 }

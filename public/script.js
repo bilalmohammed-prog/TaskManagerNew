@@ -46,6 +46,7 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
     this.createEmpBtn=document.querySelector(".createEmp");
     this.assignTaskBtn=document.querySelector(".assign-task-btn");
     this.switchEmpBtn=document.querySelector(".switchEmp");
+    this.draftBtn=document.querySelector(".draft"); 
     this.empDisplay=document.querySelector(".empDisplay");
     this.actualEmpDisplay=document.querySelector(".actualEmpDisplay");
     // Bind events once
@@ -71,6 +72,8 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
     this.createEmpBtn.addEventListener("click",()=>this.createEmp());
     this.switchEmpBtn.addEventListener("click",()=>this.switchEmp());
     this.progress.addEventListener("click", () => this.progressDisplay());
+    this.draftBtn.addEventListener("click", () => draft.openDraftPopup());
+
     if (this.recordButton) this.recordButton.addEventListener('click', () => this.openRecordPopup());
     if (this.recordCancel) this.recordCancel.addEventListener("click", () => this.closeRecordPopup());
     // Handle Enter key in reason input via delegation (bind once)
@@ -136,6 +139,9 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
       return;
     }
   }
+
+
+
   //Progress
 progressDisplay(){
 showSection("progress");
@@ -405,6 +411,11 @@ if (this.currentSection!=="manager"){
     if (this.openpopup) this.openpopup.style.display = 'block';
     if (this.assignTaskBtn) this.assignTaskBtn.style.display = 'block';
     if (this.empDisplay) this.empDisplay.style.display = 'block';
+}
+if (this.currentSection==="inbox"){
+  this.draftBtn.style.display = 'block';
+}else{
+  this.draftBtn.style.display = 'none';
 }
   if (this.empDisplay) {
     if (this.currentEmpID && this.currentEmpName) {
@@ -1909,3 +1920,75 @@ document.querySelector(".managerAccess").addEventListener("click", () => {
   };
 })();**/
 
+class draftPopup {
+  constructor(taskManager) {
+    this.taskManager = taskManager;
+
+    this.overlay = document.getElementById("draftModalOverlay");
+    this.closeBtn = document.getElementById("closeDraftModalBtn");
+    this.cancelBtn = document.getElementById("draftCancelBtn");
+    this.sendBtn = document.getElementById("draftSendBtn");
+
+    this.empInput = document.getElementById("draftEmpID");
+    this.msgInput = document.getElementById("draftMessage");
+
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    this.closeBtn.addEventListener("click", () => this.close());
+    this.cancelBtn.addEventListener("click", () => this.close());
+    this.sendBtn.addEventListener("click", () => this.send());
+  }
+
+  openDraftPopup() {
+    this.empInput.value = "";
+    this.msgInput.value = "";
+
+    this.overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  close() {
+    this.overlay.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+
+  async send() {
+    const targetID = this.empInput.value.trim();
+    const message = this.msgInput.value.trim();
+    const senderID = localStorage.getItem("actualEmpID");
+    const senderName = localStorage.getItem("actualEmpName");
+
+    if (!targetID) return alert("Enter an employee ID.");
+    if (!message) return alert("Message cannot be empty.");
+
+    const payload = {
+      senderID,
+      senderName,
+      receiverID: targetID,
+      message,
+      timestamp: Date.now()
+    };
+
+    try {
+      // backend send API
+      await fetch("/api/messages/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      // append message to "Sent" inbox UI immediately
+      this.taskManager.renderInboxToCobox();
+
+      alert("Message sent!");
+
+      this.close();
+    } catch (err) {
+      console.error("Send error:", err);
+      alert("Failed to send message.");
+    }
+  }
+}
+const draft = new draftPopup(app1);
