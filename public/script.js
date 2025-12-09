@@ -1121,8 +1121,9 @@ this.empDisplay.innerHTML = "No employee selected";
       
       const invites = d1.invitations || [];
       const sent = d2.invitations || [];
-      const receivedDrafts = d3.drafts || [];
-      const sentDrafts = d4.drafts || [];
+      const sentDrafts = d3.drafts || [];
+const receivedDrafts = d4.drafts || [];
+
 
       // build HTML
       let html = '<div style="padding:12px">';
@@ -1896,11 +1897,11 @@ function showSection(section) {
   app1.currentSection = section;
 
   if (section === "inbox") {
-    app1.renderInboxToCobox();   // ✅ prevents overwrite
+    app1.renderInboxToCobox();
   } else if (section === "progress") {
     app1.progressDisplayReload();
   } else {
-    app1.renderTasks();         // ✅ only runs for non-inbox
+    app1.renderTasks(); 
   }
 }
 
