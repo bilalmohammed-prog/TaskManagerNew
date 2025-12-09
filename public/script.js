@@ -1094,14 +1094,19 @@ this.empDisplay.innerHTML = "No employee selected";
   }
 
   // Render invitations directly into the main `.cobox` area (used when Inbox sidebar clicked)
+  // Render invitations directly into the main `.cobox` area (used when Inbox sidebar clicked)
   async renderInboxToCobox() {
     if (!this.cobox) return console.warn('cobox element not found');
     this.cobox.innerHTML = '<div style="padding:12px;color:#666">Loading inbox...</div>';
     
     try {
-      const [r1, r2] = await Promise.all([
+      const actualEmpID = localStorage.getItem("actualEmpID");
+      
+      const [r1, r2, r3, r4] = await Promise.all([
         fetch('/api/invitations?received=true', { credentials: 'include' }),
-        fetch('/api/invitations?sent=true', { credentials: 'include' })
+        fetch('/api/invitations?sent=true', { credentials: 'include' }),
+        fetch(`http://localhost:5500/draft?receiverID=${actualEmpID}`),
+        fetch(`http://localhost:5500/draft/sent?senderID=${actualEmpID}`)
       ]);
 
       if (r1.status === 401 || r2.status === 401) {
@@ -1111,11 +1116,18 @@ this.empDisplay.innerHTML = "No employee selected";
 
       const d1 = await r1.json().catch(() => ({}));
       const d2 = await r2.json().catch(() => ({}));
+      const d3 = await r3.json().catch(() => ({}));
+      const d4 = await r4.json().catch(() => ({}));
+      
       const invites = d1.invitations || [];
       const sent = d2.invitations || [];
+      const receivedDrafts = d3.drafts || [];
+      const sentDrafts = d4.drafts || [];
 
       // build HTML
       let html = '<div style="padding:12px">';
+      
+      // RECEIVED INVITATIONS
       html += '<h3 style="margin:6px 0">Received Invitations</h3>';
       if (invites.length === 0) html += '<div style="color:#666">No invitations received</div>';
       else {
@@ -1135,7 +1147,22 @@ this.empDisplay.innerHTML = "No employee selected";
         });
       }
 
-      html += '<h3 style="margin:6px 0">Sent Invitations</h3>';
+      // RECEIVED MESSAGES
+      html += '<h3 style="margin:18px 0 6px 0">Received Messages</h3>';
+      if (receivedDrafts.length === 0) html += '<div style="color:#666">No messages received</div>';
+      else {
+        receivedDrafts.forEach(draft => {
+          const timestamp = draft.timestamp ? new Date(draft.timestamp).toLocaleString() : '';
+          const from = draft.senderName || draft.senderID || 'Unknown';
+          html += `<div style="border:1px solid #ddd;padding:8px;margin:8px 0;border-radius:6px;background:#f9f9f9;color:#000">`;
+          html += `<div><strong>From:</strong> ${escapeHtml(from)} <span style="color:#888">• ${timestamp}</span></div>`;
+          html += `<div style="margin-top:6px;color:#333">${escapeHtml(draft.message)}</div>`;
+          html += '</div>';
+        });
+      }
+
+      // SENT INVITATIONS
+      html += '<h3 style="margin:18px 0 6px 0">Sent Invitations</h3>';
       if (sent.length === 0) html += '<div style="color:#666">No sent invitations</div>';
       else {
         sent.forEach(inv => {
@@ -1146,6 +1173,20 @@ this.empDisplay.innerHTML = "No employee selected";
           html += `<div><strong>To:</strong> ${escapeHtml(to)} <span style="color:#888">• ${created}</span></div>`;
           if (inv.message) html += `<div style="margin-top:6px">${escapeHtml(inv.message)}</div>`;
           html += `<div style="margin-top:8px;color:#666">${status.toUpperCase()}${inv.respondedAt? ' • ' + new Date(inv.respondedAt).toLocaleString(): ''}</div>`;
+          html += '</div>';
+        });
+      }
+
+      // SENT MESSAGES
+      html += '<h3 style="margin:18px 0 6px 0">Sent Messages</h3>';
+      if (sentDrafts.length === 0) html += '<div style="color:#666">No messages sent</div>';
+      else {
+        sentDrafts.forEach(draft => {
+          const timestamp = draft.timestamp ? new Date(draft.timestamp).toLocaleString() : '';
+          const to = draft.receiverID || 'Unknown';
+          html += `<div style="border:1px solid #ddd;padding:8px;margin:8px 0;border-radius:6px;background:#f9f9f9;color:#000">`;
+          html += `<div><strong>To:</strong> ${escapeHtml(to)} <span style="color:#888">• ${timestamp}</span></div>`;
+          html += `<div style="margin-top:6px;color:#333">${escapeHtml(draft.message)}</div>`;
           html += '</div>';
         });
       }
@@ -1851,11 +1892,16 @@ app1.progressDisplayReload();
 
 
 function showSection(section) {
-    localStorage.setItem("currentSection", section);
-    app1.currentSection = section;
-    
-    app1.renderTasks();
-    // show/hide areas here
+  localStorage.setItem("currentSection", section);
+  app1.currentSection = section;
+
+  if (section === "inbox") {
+    app1.renderInboxToCobox();   // ✅ prevents overwrite
+  } else if (section === "progress") {
+    app1.progressDisplayReload();
+  } else {
+    app1.renderTasks();         // ✅ only runs for non-inbox
+  }
 }
 
 
