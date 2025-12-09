@@ -3,7 +3,7 @@ import Draft from "../models/draftModel.js";
 
 const router = express.Router();
 
-// ✅ SAVE DRAFT MESSAGE
+
 router.post("/draft", async (req, res) => {
   try {
     const { senderID, senderName, receiverID, message, timestamp } = req.body;

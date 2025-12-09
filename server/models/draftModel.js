@@ -8,5 +8,5 @@ const draftSchema = new mongoose.Schema({
   timestamp: { type: Number, required: true }
 });
 
-// ✅ THIS LINE CREATES THE COLLECTION AUTOMATICALLY
+
 export default mongoose.model("Draft", draftSchema);
