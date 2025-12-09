@@ -1973,7 +1973,7 @@ class draftPopup {
 
     try {
       // backend send API
-      await fetch("/api/messages/send", {
+      await fetch("http://localhost:5500/draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

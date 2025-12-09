@@ -12,6 +12,9 @@ import invitationRoutes from './server/routes/invitations.js';
 const app = express();
 import fs from "fs";
 import mongoose from "mongoose";
+import draftRoutes from "./server/routes/draft.js";
+
+
 // Read and sanitize MongoDB URI from environment (strip surrounding quotes/spaces)
 const uri = process.env.uri;
 
@@ -19,7 +22,7 @@ const uri = process.env.uri;
 
 
 app.use(bodyParser.json());
-
+app.use(draftRoutes);
 
 // Allow cross-origin requests during development and support cookies when needed
 app.use(cors({ origin: true, credentials: true })); // reflect origin and allow credentials
