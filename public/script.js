@@ -203,10 +203,14 @@ async progressDisplayReload() {
     totalCompanyTasks.forEach(t => {
       if (!t.startTime || !t.endTime || t.status === "complete") return;
 
-      const [sh, sm] = t.startTime.split(":").map(Number);
-      const [eh, em] = t.endTime.split(":").map(Number);
-      const diff = (eh + em / 60) - (sh + sm / 60);
-      if (diff > 0) teamRawHours += diff;
+      const start = new Date(t.startTime);
+const end = new Date(t.endTime);
+
+if (isNaN(start) || isNaN(end) || end <= start) return;
+
+const diffHours = (end - start) / (1000 * 60 * 60);
+teamRawHours += diffHours;
+
     });
 
     const modifiers = myEmployees.map(e => this.trustModifier(e.trustScore || 75));
@@ -253,10 +257,14 @@ async progressDisplayReload() {
       empTasks.forEach(t => {
         if (!t.startTime || !t.endTime || t.status === "complete") return;
 
-        const [sh, sm] = t.startTime.split(":").map(Number);
-        const [eh, em] = t.endTime.split(":").map(Number);
-        const diff = (eh + em / 60) - (sh + sm / 60);
-        if (diff > 0) empRawHours += diff;
+        const start = new Date(t.startTime);
+const end = new Date(t.endTime);
+
+if (isNaN(start) || isNaN(end) || end <= start) return;
+
+const diffHours = (end - start) / (1000 * 60 * 60);
+empRawHours += diffHours;
+
       });
 
       const empEstimate = Math.round(
@@ -554,11 +562,24 @@ if (this.currentSection==="inbox"){
 
     if (event.key === 'Enter' && this.task.value && this.time.value) {
       let [startTime, endTime] = this.time.value.split("-").map(s => s.trim());
+
+// Parse full datetime safely
+const startDate = new Date(startTime);
+const endDate = new Date(endTime);
+
+if (isNaN(startDate) || isNaN(endDate) || endDate <= startDate) {
+  alert("Invalid date-time format. Use:\nYYYY-MM-DD HH:MM - YYYY-MM-DD HH:MM");
+  return;
+}
+
+// Store hours & mins only for overdue UI (no backend change)
+let hours = endDate.getHours();
+let mins = endDate.getMinutes();
+
       
       let id = nanoid();//setting id for each task
-      let [hStr, mStr] = endTime.split(":");
-      let hours = parseInt(hStr, 10);
-      let mins = parseInt(mStr, 10);
+      
+      
       let obj={
         empID: this.currentEmpID,
         id,
@@ -1633,97 +1654,87 @@ class AssignTaskModal {
     }
     
     async createTaskViaManager(taskDescription, timeRange) {
-        // Validate inputs
-        if (!taskDescription || !timeRange) {
-            console.error('Task description and time range are required');
-            throw new Error('Task description and time range are required');
-        }
-        
-        try {
-            // Parse time range
-            let [startTime, endTime] = timeRange.split("-").map(s => s.trim());
-            
-            // Validate time format
-            if (!startTime || !endTime) {
-                throw new Error('Invalid time format');
-            }
-            
-            // Generate unique ID
-            let id = nanoid();
-            
-            // Parse end time for hours and minutes
-            let [hStr, mStr] = endTime.split(":");
-            let hours = parseInt(hStr, 10);
-            let mins = parseInt(mStr, 10);
-            
-            // Validate parsed values
-            if (isNaN(hours) || isNaN(mins)) {
-                throw new Error('Invalid time values');
-            }
-            
-            // Create task object
-            let obj = {
-              empID: this.taskManager.currentEmpID,
-                id,
-                startTime,
-                endTime,
-                hours,
-                mins,
-                task: taskDescription,
-                sta: "pending",
-                overdue: false
-            };
-            
-            // Add to info array in TaskManager
-            this.taskManager.info.push(obj);
-            
-            // Save and render using TaskManager methods
-            this.taskManager.save();
-            this.taskManager.renderTasks();
-            
-            // Find the task object
-            const taskObj = this.taskManager.info.find(item => item.id === obj.id);
-            console.log("TaskObj found:", taskObj);
-            
-            if (taskObj) {
-                try {
-                    // Send to backend
-                    const res = await fetch("http://localhost:5500/addTask", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          empID:taskObj.empID,
-                            id: taskObj.id,
-                            task: taskObj.task,
-                            startTime: taskObj.startTime,
-                            endTime: taskObj.endTime,
-                            status: taskObj.sta,
-                            proof:taskObj.proof
-                        })
-                    });
-                    
-                    if (!res.ok) {
-                        const errorText = await res.text();
-                        throw new Error(`HTTP error! status: ${res.status}, message: ${errorText}`);
-                    }
-                    
-                    const result = await res.json();
-                    console.log("Task added to database:", result.message || JSON.stringify(result));
-                    return true; // Success
-                } catch (err) {
-                    console.error("Error adding task to DB:", err);
-                    console.error("Error details:", err.message);
-                    throw err; // Re-throw to handle in UI
-                }
-            } else {
-                console.error("Task not found for id", obj.id);
-                throw new Error("Task not found after creation");
-            }
-        } catch (error) {
-            console.error("Error in createTaskViaManager:", error);
-            throw error; // Re-throw to handle in UI
-        }
+  if (!taskDescription || !timeRange) {
+    throw new Error("Task description and time range are required");
+  }
+
+  try {
+    console.log("RAW timeRange from modal:", timeRange);
+
+    // ✅ CRITICAL FIX: split ONLY on " - " (space dash space)
+    if (!timeRange.includes(" - ")) {
+      throw new Error("Invalid format. Use: YYYY-MM-DD HH:MM - YYYY-MM-DD HH:MM");
     }
+
+    let [startRaw, endRaw] = timeRange.split(" - ").map(s => s.trim());
+
+    console.log("Parsed startRaw:", startRaw);
+    console.log("Parsed endRaw:", endRaw);
+
+    const startDate = new Date(startRaw);
+    const endDate = new Date(endRaw);
+
+    console.log("Parsed Dates:", startDate, endDate);
+
+    if (isNaN(startDate) || isNaN(endDate) || endDate <= startDate) {
+      throw new Error("Invalid datetime values after parsing");
+    }
+
+    // ✅ Always store ISO datetime for backend safety
+    const startTime = startDate.toISOString();
+    const endTime = endDate.toISOString();
+
+    // ✅ For overdue UI only
+    const hours = endDate.getHours();
+    const mins = endDate.getMinutes();
+
+    const id = nanoid();
+
+    const obj = {
+      empID: this.taskManager.currentEmpID,
+      id,
+      startTime,
+      endTime,
+      hours,
+      mins,
+      task: taskDescription,
+      sta: "pending",
+      overdue: false,
+      proof: ""
+    };
+
+    this.taskManager.info.push(obj);
+    this.taskManager.save();
+    this.taskManager.renderTasks();
+
+    const res = await fetch("http://localhost:5500/addTask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        empID: obj.empID,
+        id: obj.id,
+        task: obj.task,
+        startTime: obj.startTime,
+        endTime: obj.endTime,
+        status: obj.sta,
+        proof: obj.proof
+      })
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errorText}`);
+    }
+
+    return true;
+
+  } catch (error) {
+    console.error("Error in createTaskViaManager:", error);
+    throw error;
+  }
+}
+
+
 }
 
 // ===============================================

@@ -65,16 +65,17 @@ app.use(express.static('public'));
   }
 })();
 //Schema
-const userSchema=new mongoose.Schema({
-  empID:{type:String,required:true},
-  id:{type:String,required:true},
-    task:{type:String,required:true},
-    startTime:{type:String,required:true},
-    endTime:{type:String,required:true},
-    status:{type:String,required:true},
-    proof:{type:String,required:false}
-  
-})
+const userSchema = new mongoose.Schema({
+  empID: { type: String, required: true },
+  id: { type: String, required: true },
+  task: { type: String, required: true },
+  startTime: { type: String, required: true }, // now full datetime string
+  endTime: { type: String, required: true },   // now full datetime string
+  status: { type: String, required: true },
+  proof: { type: String, required: false },
+  durationHours: { type: Number, required: false } // optional computed field
+});
+
 
 const empIDSchema=new mongoose.Schema({
   empID:{type:String,unique:true,required:true},
@@ -118,25 +119,47 @@ function getModel() {
   return mongoose.model(currentCollection, userSchema, currentCollection);
 }
 
-app.post("/addTask",async(req,res)=>{
-    try{const body=req.body;
-      const model=getModel();
-    const result=await model.create({
-      empID: body.empID,
-      id:body.id,
-        task:body.task,
-        startTime:body.startTime,
-        endTime:body.endTime,
-        status:body.status,
-        proof:body.proof
-    })
-    console.log("result:",result);
-    return res.status(200).json({message:"Task added successfully",data:result});
-    } catch(err){
-        console.log("Error adding task:",err);
-        return res.status(500).json({message:"Error adding task"});
+app.post("/addTask", async (req, res) => {
+  try {
+    const body = req.body;
+    // validate required fields
+    if (!body.empID || !body.id || !body.task || !body.startTime || !body.endTime || !body.status) {
+      return res.status(400).json({ message: "Missing required fields (empID,id,task,startTime,endTime,status)" });
     }
-})
+
+    // parse datetimes (frontend sends full datetime strings like "2025-12-10 10:00")
+    const start = new Date(body.startTime);
+    const end = new Date(body.endTime);
+
+    if (isNaN(start) || isNaN(end)) {
+      return res.status(400).json({ message: "Invalid startTime or endTime. Use a full datetime string like 'YYYY-MM-DD HH:MM' or an ISO string." });
+    }
+    if (end <= start) {
+      return res.status(400).json({ message: "endTime must be after startTime" });
+    }
+
+    const durationHours = Math.round(((end - start) / (1000 * 60 * 60)) * 100) / 100; // keep 2 decimals
+
+    const model = getModel();
+    const result = await model.create({
+      empID: body.empID,
+      id: body.id,
+      task: body.task,
+      startTime: body.startTime,
+      endTime: body.endTime,
+      status: body.status,
+      proof: body.proof || "",
+      durationHours
+    });
+
+    console.log("result:", result);
+    return res.status(200).json({ message: "Task added successfully", data: result });
+  } catch (err) {
+    console.log("Error adding task:", err);
+    return res.status(500).json({ message: "Error adding task", error: err.message });
+  }
+});
+
 
 
 
@@ -160,22 +183,43 @@ app.delete("/deleteTask", async (req, res) => {
 // ...existing code...
 app.put("/updateTask", async (req, res) => {
   try {
-    const {empID, id, task, startTime, endTime, status,proof } = req.body;
-    const model=getModel();
-    
-    // Build update object with only provided fields
+    const { empID, id, task, startTime, endTime, status, proof } = req.body;
+    if (!id) return res.status(400).json({ message: "Task id is required" });
+
+    const model = getModel();
+
+    // Build update object only with provided fields
     const updateFields = {};
-    updateFields.empID = empID;
-    updateFields.task = task;
-    updateFields.startTime = startTime;
-    updateFields.endTime = endTime;
-    updateFields.status = status;
-    updateFields.proof = proof;
-    
-    // update the document and return the updated document
+    if (empID !== undefined) updateFields.empID = empID;
+    if (task !== undefined) updateFields.task = task;
+    if (startTime !== undefined) updateFields.startTime = startTime;
+    if (endTime !== undefined) updateFields.endTime = endTime;
+    if (status !== undefined) updateFields.status = status;
+    if (proof !== undefined) updateFields.proof = proof;
+
+    // If both startTime and endTime are provided (or either provided while the other exists in DB),
+    // compute new durationHours
+    if (startTime !== undefined || endTime !== undefined) {
+      // fetch existing doc if one side is missing from request
+      const existing = await model.findOne({ id }).lean();
+      if (!existing) return res.status(404).json({ message: "Task not found" });
+
+      const s = startTime !== undefined ? new Date(startTime) : new Date(existing.startTime);
+      const e = endTime !== undefined ? new Date(endTime) : new Date(existing.endTime);
+
+      if (isNaN(s) || isNaN(e)) {
+        return res.status(400).json({ message: "Invalid startTime or endTime" });
+      }
+      if (e <= s) {
+        return res.status(400).json({ message: "endTime must be after startTime" });
+      }
+
+      updateFields.durationHours = Math.round(((e - s) / (1000 * 60 * 60)) * 100) / 100;
+    }
+
     const updated = await model.findOneAndUpdate(
       { id },
-      updateFields,
+      { $set: updateFields },
       { new: true }
     );
 
@@ -189,6 +233,7 @@ app.put("/updateTask", async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error", error: err.message });
   }
 });
+
 
 app.post("/endDay", async (req, res) => {
   try {
