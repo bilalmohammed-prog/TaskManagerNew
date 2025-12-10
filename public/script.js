@@ -148,8 +148,16 @@ showSection("progress");
 this.progressDisplayReload();
 }
 
+trustModifier(score) {
+  if (score >= 90) return 0.9;
+  if (score >= 75) return 1.0;
+  if (score >= 60) return 1.15;
+  if (score >= 40) return 1.30;
+  return 1.50;
+}
+
+
 async progressDisplayReload() {
-  this.cobox.innerHTML = "";
   this.cobox.innerHTML = `<div style="padding:12px;color:#666">Loading progress...</div>`;
 
   try {
@@ -165,15 +173,12 @@ async progressDisplayReload() {
     const employees = data.collections.empID || [];
     const systemCollections = data.collections;
 
-    // ✅ Get only employees working under this manager
     const myEmployees = employees.filter(emp => emp.managerID === managerID);
-
     if (myEmployees.length === 0) {
       this.cobox.innerHTML = "<div>No employees under you</div>";
       return;
     }
 
-    // ✅ Collect all tasks from all system task collections
     let allTasks = [];
     for (const [key, docs] of Object.entries(systemCollections)) {
       if (key !== "empID" && !key.startsWith("system.")) {
@@ -181,71 +186,102 @@ async progressDisplayReload() {
       }
     }
 
-    const totalCompanyTasks = allTasks.filter(t => 
-  myEmployees.some(e => e.empID === t.empID)
-);
+    const totalCompanyTasks = allTasks.filter(t =>
+      myEmployees.some(e => e.empID === t.empID)
+    );
 
-const totalCompletedCompanyTasks = totalCompanyTasks.filter(t => t.status === "complete").length;
+    const totalCompletedCompanyTasks =
+      totalCompanyTasks.filter(t => t.status === "complete").length;
 
-const companyPercent = totalCompanyTasks.length === 0 
-  ? 0 
-  : Math.round((totalCompletedCompanyTasks / totalCompanyTasks.length) * 100);
+    const companyPercent = totalCompanyTasks.length === 0
+      ? 0
+      : Math.round((totalCompletedCompanyTasks / totalCompanyTasks.length) * 100);
 
-let html = `
-  <h2 style="margin-bottom:15px">Employee Progress</h2>
+    /* ✅ TEAM RAW TIME FROM TASKS */
+    let teamRawHours = 0;
 
-  <!-- ✅ COMBINED TEAM PROGRESS (SAME STYLE AS OTHERS) -->
-  <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
-    
-    <div style="font-weight:bold;margin-bottom:6px">
-      Combined Team (All Employees)
-    </div>
+    totalCompanyTasks.forEach(t => {
+      if (!t.startTime || !t.endTime || t.status === "complete") return;
 
-    <div style="font-size:13px;margin-bottom:6px">
-      ${totalCompletedCompanyTasks} / ${totalCompanyTasks.length} tasks completed
-    </div>
+      const [sh, sm] = t.startTime.split(":").map(Number);
+      const [eh, em] = t.endTime.split(":").map(Number);
+      const diff = (eh + em / 60) - (sh + sm / 60);
+      if (diff > 0) teamRawHours += diff;
+    });
 
-    <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
-      <div style="
-        height:100%;
-        width:${companyPercent}%;
-        background:linear-gradient(90deg,#00c853,#64dd17);
-        transition:width 0.4s;
-      "></div>
-    </div>
+    const modifiers = myEmployees.map(e => this.trustModifier(e.trustScore || 75));
+    const avgModifier =
+      modifiers.reduce((a, b) => a + b, 0) / modifiers.length;
 
-    <div style="font-size:12px;margin-top:4px">${companyPercent}%</div>
-  </div>
-`;
+    const teamEstimate = Math.round(teamRawHours * avgModifier);
 
+    let html = `
+      <h2 style="margin-bottom:15px">Employee Progress</h2>
 
+      <!-- ✅ TEAM TASK PROGRESS -->
+      <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
+        <div style="font-weight:bold">Combined Team</div>
+
+        <div style="font-size:13px">
+          ${totalCompletedCompanyTasks} / ${totalCompanyTasks.length} tasks completed
+        </div>
+
+        <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
+          <div style="height:100%;width:${companyPercent}%;
+            background:linear-gradient(90deg,#00c853,#64dd17);">
+          </div>
+        </div>
+
+        <div style="font-size:12px">${companyPercent}%</div>
+
+        <div style="margin-top:10px;font-size:13px">
+          Estimated Team Completion: <b>${teamEstimate} hours</b>
+        </div>
+      </div>
+    `;
+
+    /* ✅ PER-EMPLOYEE PROGRESS + TIME */
     myEmployees.forEach(emp => {
       const empTasks = allTasks.filter(t => t.empID === emp.empID);
       const total = empTasks.length;
       const completed = empTasks.filter(t => t.status === "complete").length;
       const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
+      /* ✅ EMP RAW TIME */
+      let empRawHours = 0;
+
+      empTasks.forEach(t => {
+        if (!t.startTime || !t.endTime || t.status === "complete") return;
+
+        const [sh, sm] = t.startTime.split(":").map(Number);
+        const [eh, em] = t.endTime.split(":").map(Number);
+        const diff = (eh + em / 60) - (sh + sm / 60);
+        if (diff > 0) empRawHours += diff;
+      });
+
+      const empEstimate = Math.round(
+        empRawHours * this.trustModifier(emp.trustScore || 75)
+      );
+
       html += `
         <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
-          
-          <div style="font-weight:bold;margin-bottom:6px">
-            ${emp.name} (ID: ${emp.empID})
-          </div>
+          <div style="font-weight:bold">${emp.name} (ID: ${emp.empID})</div>
 
-          <div style="font-size:13px;margin-bottom:6px">
+          <div style="font-size:13px">
             ${completed} / ${total} tasks completed
           </div>
 
           <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
-            <div style="
-              height:100%;
-              width:${percent}%;
-              background:linear-gradient(90deg,#00c853,#64dd17);
-              transition:width 0.4s;
-            "></div>
+            <div style="height:100%;width:${percent}%;
+              background:linear-gradient(90deg,#00c853,#64dd17);">
+            </div>
           </div>
 
-          <div style="font-size:12px;margin-top:4px">${percent}%</div>
+          <div style="font-size:12px">${percent}%</div>
+
+          <div style="margin-top:8px;font-size:13px">
+            Estimated Completion Time: <b>${empEstimate} hours</b>
+          </div>
         </div>
       `;
     });
@@ -257,6 +293,8 @@ let html = `
     this.cobox.innerHTML = "<div style='color:red'>Failed to load progress</div>";
   }
 }
+
+
 
   //Progress
 
