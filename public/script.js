@@ -306,39 +306,65 @@ let html = `
       this.info = JSON.parse(localStorage.getItem("info")) || [];
     }
   }
-async createEmp(){
-  const email = prompt("Enter email");
+async createEmp() {
+  const action = confirm("OK = Add Employee\nCancel = Drop Employee");
 
-if (!email) {
-  alert("Email is required.");
-  return;
-}
-  const message = prompt("Optional message to include with the invitation (press Cancel to skip)") || '';
-  try {
-        const res = await fetch("/api/invitations", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            receiverEmail: email,
-            message: message
-          })
-        });
-        if (res.status === 201) {
-          const json = await res.json();
-          alert('Invitation sent');
-          console.log('Invitation created:', json.invitation);
-          // refresh manager's sent invites UI if present
-        } else {
-          const err = await res.json();
-          alert('Could not send invitation: ' + (err.error || err.message || res.status));
-          console.error('Invitation error', err);
-        }
-      } catch (err) {
-        console.error("Error sending invitation to server:", err);
-        alert('Network error sending invitation');
+  if (action) {
+    // ✅ ADD EMPLOYEE (existing logic)
+    const email = prompt("Enter employee email");
+
+    if (!email) return alert("Email is required.");
+
+    const message = prompt("Optional message") || '';
+
+    try {
+      const res = await fetch("/api/invitations", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          receiverEmail: email,
+          message
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        return alert(err.error || "Failed to send invite");
       }
+
+      alert("Invitation sent");
+    } catch (err) {
+      console.error(err);
+      alert("Network error");
+    }
+
+  } else {
+    // ✅ DROP EMPLOYEE
+    const empID = prompt("Enter Employee ID to remove");
+
+    if (!empID) return alert("Employee ID required");
+
+    try {
+      const res = await fetch("/api/employee/drop", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ empID })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) return alert(data.error || "Drop failed");
+
+      alert("Employee removed successfully");
+    } catch (err) {
+      console.error(err);
+      alert("Network error");
+    }
+  }
 }
+
 async switchEmp() {
   try {
     const res = await fetch("http://localhost:5500/switchEmp");

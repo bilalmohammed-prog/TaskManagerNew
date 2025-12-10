@@ -18,5 +18,5 @@ this is done wehn add employee is clicked
 
 9.make it so that if not logged in through gmail, says not authorized
 
-10. add employee communicqation in inbox
+11.drop manager
     
