@@ -336,7 +336,8 @@ empRawHours += diffHours;
         task: doc.task,
         startTime: doc.startTime,
         endTime: doc.endTime,
-        sta: doc.status === 'complete' ? 'complete' : 'pending',
+        sta: doc.status, // ✅ PRESERVE complete, completedLate, pending, incomplete
+
         hours: parseInt(doc.endTime.split(':')[0], 10),
         mins: parseInt(doc.endTime.split(':')[1], 10),
         overdue: false
@@ -531,23 +532,33 @@ if (this.currentSection==="inbox"){
         `;
         }
       // check overdue
-      const nowH = dayjs().hour();
-      const nowM = dayjs().minute();
-      if (item.hours < nowH || (item.hours === nowH && item.mins < nowM)) {
-        item.overdue = true;
-      }
+      const now = new Date();
+const taskEnd = new Date(item.endTime);
+
+if (!isNaN(taskEnd) && taskEnd < now) {
+  item.overdue = true;
+} else {
+  item.overdue = false;
+}
+
 
       const container = this.cobox.querySelector(`.container3[data-class="${item.id}"]`);
       if (container) {
         const checkbox = container.querySelector('.checkbox');
-        if (item.sta === "complete") {
-          checkbox.style.backgroundColor = "rgb(68, 255, 136)"; // green
-        } else if (item.overdue && item.sta !== "complete") {
-          checkbox.style.backgroundColor = "rgb(218, 62, 62)"; // red
-          item.sta = "incomplete";
-        } else {
-          checkbox.style.backgroundColor = "";
-        }
+        if (item.sta === "completedLate") {
+  checkbox.style.backgroundColor = "rgb(255, 214, 0)"; // 🟡 YELLOW (late but submitted)
+}
+else if (item.sta === "complete") {
+  checkbox.style.backgroundColor = "rgb(68, 255, 136)"; // ✅ GREEN (on-time)
+}
+else if (item.overdue === true) {
+  checkbox.style.backgroundColor = "rgb(218, 62, 62)"; // 🔴 RED (late NOT submitted)
+}
+else {
+  checkbox.style.backgroundColor = ""; // ⚪ normal pending
+}
+
+
       }
     });
 
@@ -664,55 +675,57 @@ let mins = endDate.getMinutes();
     }
   }
 
-  async completeTask(event) {
-    const btn = event.target instanceof Element ? event.target.closest('.completed-button') : null;
-    if (!btn) return;
-    const id = btn.dataset.class;
-    const taskObj = this.info.find(item => item.id === id);
-    
-    // Check if task exists first
-    if (!taskObj) {
-      console.warn("Task not found in local state with id:", id);
-      return;
-    }
-    
-    // Handle status toggle
-    if (taskObj.sta === "complete") {
-      taskObj.sta = "pending";
-      taskObj.proof = ""; // Clear proof when marking as pending
-    } else if (taskObj.sta === "pending") {
-      const proof = prompt("Please provide proof of completion (e.g., github link):");
-      if (!proof) return; // User cancelled or provided empty proof
-      taskObj.proof = proof;
-      taskObj.sta = "complete";
-    }
-    
-    // Update database (only if task is not overdue)
-    if (!taskObj.overdue) {
-      try {
-        const res = await fetch("http://localhost:5500/updateTask", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            empID: taskObj.empID,
-            id: taskObj.id,
-            task: taskObj.task,
-            startTime: taskObj.startTime,
-            endTime: taskObj.endTime,
-            status: taskObj.sta,
-            proof: taskObj.proof || "" // Ensure proof is always defined
-          })
-        });
-        const result = await res.json();
-        console.log("Complete task response:", result.message || result);
-      } catch (err) {
-        console.error("Error updating task status on server:", err);
-      }
-    }
-    
-    this.save();
-    this.renderTasks();
+async completeTask(event) {
+  const btn = event.target instanceof Element ? event.target.closest('.completed-button') : null;
+  if (!btn) return;
+
+  const id = btn.dataset.class;
+  const taskObj = this.info.find(item => item.id === id);
+
+  if (!taskObj) {
+    console.warn("Task not found:", id);
+    return;
+  }
+
+  const proof = prompt("Please provide proof of completion (e.g., github link):");
+  if (!proof) return;
+
+  taskObj.proof = proof;
+
+  // ✅ NEW LOGIC
+  if (taskObj.overdue) {
+    taskObj.sta = "completedLate";   // ✅ MARK LATE
+  } else {
+    taskObj.sta = "complete";        // ✅ NORMAL COMPLETE
+  }
+
+  // ✅ ALWAYS UPDATE BACKEND (even if overdue)
+  try {
+    const res = await fetch("http://localhost:5500/updateTask", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        empID: taskObj.empID,
+        id: taskObj.id,
+        task: taskObj.task,
+        startTime: taskObj.startTime,
+        endTime: taskObj.endTime,
+        status: taskObj.sta,
+        proof: taskObj.proof
+      })
+    });
+
+    const result = await res.json();
+    console.log("Task updated:", result.message || result);
+
+  } catch (err) {
+    console.error("Error updating task:", err);
+  }
+
+  this.save();
+  this.renderTasks();
 }
+
 
   //update
   // ...existing code...
