@@ -18,5 +18,8 @@ this is done wehn add employee is clicked
 
 9.make it so that if not logged in through gmail, says not authorized
 
-11.drop manager
-    
+10. AI features to make it unique
+
+11.Task full time including date,
+trust points which involves how theyve done previous tasks,have modifiers,
+

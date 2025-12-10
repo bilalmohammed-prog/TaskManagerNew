@@ -1922,6 +1922,9 @@ function showSection(section) {
   localStorage.setItem("currentSection", section);
   app1.currentSection = section;
 
+
+  updateSidebarForSection(section);
+
   if (section === "inbox") {
     app1.renderInboxToCobox();
   } else if (section === "progress") {
@@ -1929,6 +1932,18 @@ function showSection(section) {
   } else {
     app1.renderTasks(); 
   }
+}
+
+function updateSidebarForSection(section) {
+  const showManagerUI = section === "manager";
+
+  app1.createEmpBtn.style.display = showManagerUI ? "block" : "none";
+  app1.switchEmpBtn.style.display = showManagerUI ? "block" : "none";
+  app1.openpopup.style.display = showManagerUI ? "block" : "none";
+  app1.assignTaskBtn.style.display = showManagerUI ? "block" : "none";
+  app1.empDisplay.style.display = showManagerUI ? "block" : "none";
+
+  app1.draftBtn.style.display = section === "inbox" ? "block" : "none";
 }
 
 
