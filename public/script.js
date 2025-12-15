@@ -151,10 +151,11 @@ this.progressDisplayReload();
 trustModifier(score) {
   if (score >= 90) return 0.9;
   if (score >= 75) return 1.0;
-  if (score >= 60) return 1.15;
-  if (score >= 40) return 1.30;
-  return 1.50;
+  if (score >= 60) return 1.2;
+  if (score >= 40) return 1.5;
+  return 2.0;
 }
+
 
 
 async progressDisplayReload() {
@@ -197,104 +198,106 @@ async progressDisplayReload() {
       ? 0
       : Math.round((totalCompletedCompanyTasks / totalCompanyTasks.length) * 100);
 
-    /* ✅ TEAM RAW TIME FROM TASKS */
-    let teamRawHours = 0;
+   // ---------------- TEAM + EMPLOYEE ESTIMATION (single-pass engine) ----------------
+let teamEstimate = 0;
 
-    totalCompanyTasks.forEach(t => {
-      if (!t.startTime || !t.endTime || t.status === "complete") return;
+// Build a map of tasks grouped by employee
+const tasksByEmp = {};
+for (const t of totalCompanyTasks) {
+  (tasksByEmp[t.empID] ||= []).push(t);
+}
 
-      const start = new Date(t.startTime);
-const end = new Date(t.endTime);
+let html = `
+  <h2 style="margin-bottom:15px">Employee Progress</h2>
 
-if (isNaN(start) || isNaN(end) || end <= start) return;
+  <!-- TEAM PROGRESS HEADER -->
+  <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
+    <div style="font-weight:bold">Combined Team</div>
 
-const diffHours = (end - start) / (1000 * 60 * 60);
-teamRawHours += diffHours;
+    <div style="font-size:13px">
+      ${totalCompletedCompanyTasks} / ${totalCompanyTasks.length} tasks completed
+    </div>
 
-    });
+    <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
+      <div style="height:100%;width:${companyPercent}%;
+        background:linear-gradient(90deg,#00c853,#64dd17);">
+      </div>
+    </div>
 
-    const modifiers = myEmployees.map(e => this.trustModifier(e.trustScore || 75));
-    const avgModifier =
-      modifiers.reduce((a, b) => a + b, 0) / modifiers.length;
+    <div style="font-size:12px">${companyPercent}%</div>
+`;
 
-    const teamEstimate = Math.round(teamRawHours * avgModifier);
+// We will append team estimate AFTER employee loop
+let empHtml = "";
 
-    let html = `
-      <h2 style="margin-bottom:15px">Employee Progress</h2>
+for (const emp of myEmployees) {
+  const empTasks = tasksByEmp[emp.empID] || [];
 
-      <!-- ✅ TEAM TASK PROGRESS -->
-      <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
-        <div style="font-weight:bold">Combined Team</div>
+  // Calculate employee raw hours
+  let empRaw = 0;
 
-        <div style="font-size:13px">
-          ${totalCompletedCompanyTasks} / ${totalCompanyTasks.length} tasks completed
-        </div>
+  for (const t of empTasks) {
+    if (!t.startTime || !t.endTime || t.status === "complete") continue;
 
-        <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
-          <div style="height:100%;width:${companyPercent}%;
-            background:linear-gradient(90deg,#00c853,#64dd17);">
-          </div>
-        </div>
+    const start = new Date(t.startTime);
+    const end = new Date(t.endTime);
+    if (isNaN(start) || isNaN(end) || end <= start) continue;
 
-        <div style="font-size:12px">${companyPercent}%</div>
+    empRaw += (end - start) / (1000 * 60 * 60);
+  }
 
-        <div style="margin-top:10px;font-size:13px">
-          Estimated Team Completion: <b>${teamEstimate} hours</b>
+  // Employee modifier
+  const modifier = this.trustModifier(emp.trustScore ?? 80);
+
+  // Final per-employee estimate
+  const empEstimate = Math.round(empRaw * modifier);
+
+  // Add to team total
+  teamEstimate += empEstimate;
+
+  // Compute completion percentage
+  const total = empTasks.length;
+  const completed = empTasks.filter(t => t.status === "complete").length;
+  const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+  // Build employee HTML
+  empHtml += `
+    <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
+      <div style="font-weight:bold">${emp.name} (ID: ${emp.empID})</div>
+
+      <div style="font-size:13px">
+        ${completed} / ${total} tasks completed
+      </div>
+
+      <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
+        <div style="height:100%;width:${percent}% ;
+          background:linear-gradient(90deg,#00c853,#64dd17);">
         </div>
       </div>
-    `;
 
-    /* ✅ PER-EMPLOYEE PROGRESS + TIME */
-    myEmployees.forEach(emp => {
-      const empTasks = allTasks.filter(t => t.empID === emp.empID);
-      const total = empTasks.length;
-      const completed = empTasks.filter(t => t.status === "complete").length;
-      const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+      <div style="font-size:12px">${percent}%</div>
 
-      /* ✅ EMP RAW TIME */
-      let empRawHours = 0;
+      <div style="margin-top:8px;font-size:13px">
+        Estimated Completion Time: <b>${empEstimate} hours</b>
+      </div>
+    </div>
+  `;
+}
 
-      empTasks.forEach(t => {
-        if (!t.startTime || !t.endTime || t.status === "complete") return;
+// Now append TEAM ESTIMATE (computed correctly from emp estimates)
+html += `
+    <div style="margin-top:10px;font-size:13px">
+      Estimated Team Completion: <b>${teamEstimate} hours</b>
+    </div>
+  </div>
+`;
 
-        const start = new Date(t.startTime);
-const end = new Date(t.endTime);
+html += empHtml;
 
-if (isNaN(start) || isNaN(end) || end <= start) return;
+this.cobox.innerHTML = html;
 
-const diffHours = (end - start) / (1000 * 60 * 60);
-empRawHours += diffHours;
 
-      });
 
-      const empEstimate = Math.round(
-        empRawHours * this.trustModifier(emp.trustScore || 75)
-      );
-
-      html += `
-        <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
-          <div style="font-weight:bold">${emp.name} (ID: ${emp.empID})</div>
-
-          <div style="font-size:13px">
-            ${completed} / ${total} tasks completed
-          </div>
-
-          <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
-            <div style="height:100%;width:${percent}%;
-              background:linear-gradient(90deg,#00c853,#64dd17);">
-            </div>
-          </div>
-
-          <div style="font-size:12px">${percent}%</div>
-
-          <div style="margin-top:8px;font-size:13px">
-            Estimated Completion Time: <b>${empEstimate} hours</b>
-          </div>
-        </div>
-      `;
-    });
-
-    this.cobox.innerHTML = html;
 
   } catch (err) {
     console.error("Progress load error:", err);
@@ -546,16 +549,16 @@ if (!isNaN(taskEnd) && taskEnd < now) {
       if (container) {
         const checkbox = container.querySelector('.checkbox');
         if (item.sta === "completedLate") {
-  checkbox.style.backgroundColor = "rgb(255, 214, 0)"; // 🟡 YELLOW (late but submitted)
+  checkbox.style.backgroundColor = "rgb(255, 214, 0)"; //YELLOW (late but submitted)
 }
 else if (item.sta === "complete") {
-  checkbox.style.backgroundColor = "rgb(68, 255, 136)"; // ✅ GREEN (on-time)
+  checkbox.style.backgroundColor = "rgb(68, 255, 136)"; // GREEN (on-time)
 }
 else if (item.overdue === true) {
-  checkbox.style.backgroundColor = "rgb(218, 62, 62)"; // 🔴 RED (late NOT submitted)
+  checkbox.style.backgroundColor = "rgb(218, 62, 62)"; // RED (late NOT submitted)
 }
 else {
-  checkbox.style.backgroundColor = ""; // ⚪ normal pending
+  checkbox.style.backgroundColor = ""; // normal pending
 }
 
 

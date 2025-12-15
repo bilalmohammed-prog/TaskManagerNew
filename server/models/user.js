@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   status: { type: String, default: 'active' },
   lastLoginAt: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now },
+  trustScore: { type: Number, default: 80 }  
 }, { collection: 'empID' });
 
 // Ensure the model name is `User` so Mongoose maps it to the expected `users` collection

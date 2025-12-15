@@ -79,7 +79,8 @@ const userSchema = new mongoose.Schema({
 
 const empIDSchema=new mongoose.Schema({
   empID:{type:String,unique:true,required:true},
-  name:{type:String,required:true}
+  name:{type:String,required:true},
+  trustScore: { type: Number, default: 80 }
 })
 const empIDModel=mongoose.model('empID',empIDSchema,'empID');
 
