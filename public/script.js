@@ -162,24 +162,42 @@ async progressDisplayReload() {
   this.cobox.innerHTML = `<div style="padding:12px;color:#666">Loading progress...</div>`;
 
   try {
+    // -------------------------------
+    // 1. Manager check
+    // -------------------------------
     const managerID = localStorage.getItem("actualEmpID");
     if (!managerID) {
       this.cobox.innerHTML = "<div style='color:red'>Manager not logged in</div>";
       return;
     }
 
+    // -------------------------------
+    // 2. Fetch all DB collections
+    // -------------------------------
     const res = await fetch("http://localhost:5500/getAllCollections");
     const data = await res.json();
 
-    const employees = data.collections.empID || [];
-    const systemCollections = data.collections;
+    // Always fetch the up-to-date employee list (trustScore included)
+const empRes = await fetch("http://localhost:5500/getempID");
+const empData = await empRes.json();
+const employees = empData.employees || [];
 
+// Task collections still come from getAllCollections
+const systemCollections = data.collections;
+
+
+    // -------------------------------
+    // 3. Get only employees managed by this manager
+    // -------------------------------
     const myEmployees = employees.filter(emp => emp.managerID === managerID);
     if (myEmployees.length === 0) {
       this.cobox.innerHTML = "<div>No employees under you</div>";
       return;
     }
 
+    // -------------------------------
+    // 4. Combine tasks from ALL system collections
+    // -------------------------------
     let allTasks = [];
     for (const [key, docs] of Object.entries(systemCollections)) {
       if (key !== "empID" && !key.startsWith("system.")) {
@@ -187,123 +205,158 @@ async progressDisplayReload() {
       }
     }
 
+    // -------------------------------
+    // 5. Filter tasks belonging to your employees only
+    // -------------------------------
     const totalCompanyTasks = allTasks.filter(t =>
       myEmployees.some(e => e.empID === t.empID)
     );
 
     const totalCompletedCompanyTasks =
-      totalCompanyTasks.filter(t => t.status === "complete").length;
+      totalCompanyTasks.filter(t => 
+        t.status === "complete" || t.status === "completedLate"
+      ).length;
 
-    const companyPercent = totalCompanyTasks.length === 0
-      ? 0
-      : Math.round((totalCompletedCompanyTasks / totalCompanyTasks.length) * 100);
 
-   // ---------------- TEAM + EMPLOYEE ESTIMATION (single-pass engine) ----------------
-let teamEstimate = 0;
+    const companyPercent =
+      totalCompanyTasks.length === 0
+        ? 0
+        : Math.round((totalCompletedCompanyTasks / totalCompanyTasks.length) * 100);
 
-// Build a map of tasks grouped by employee
-const tasksByEmp = {};
-for (const t of totalCompanyTasks) {
-  (tasksByEmp[t.empID] ||= []).push(t);
+    // -------------------------------
+    // 6. TRUST + ESTIMATION ENGINE
+    // -------------------------------
+
+    // Group tasks by employee ID
+    const tasksByEmp = {};
+    totalCompanyTasks.forEach(t => {
+      (tasksByEmp[t.empID] ||= []).push(t);
+    });
+
+    // Compute per-employee raw hours, trust score, and estimates
+    const employeeResults = myEmployees.map(emp => {
+      const empTasks = tasksByEmp[emp.empID] || [];
+      let empRawHours = 0;
+
+      let empPendingHours = 0;
+const now = new Date(new Date().toISOString());
+
+
+empTasks.forEach(t => {
+  if (t.status === "complete" || t.status === "completedLate") return;
+
+  const start = new Date(t.startTime);
+  const end = new Date(t.endTime);
+
+  if (isNaN(start) || isNaN(end)) return;
+
+  // If task is overdue, count FULL duration as pending
+if (now >= end) {
+  empPendingHours += (end - start) / (1000 * 60 * 60);
+  return;
 }
 
-let html = `
-  <h2 style="margin-bottom:15px">Employee Progress</h2>
+// Otherwise count remaining scheduled time
+const effectiveStart = new Date(Math.max(start.getTime(), now.getTime()));
+empPendingHours += (end - effectiveStart) / (1000 * 60 * 60);
 
-  <!-- TEAM PROGRESS HEADER -->
-  <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
-    <div style="font-weight:bold">Combined Team</div>
+});
 
-    <div style="font-size:13px">
-      ${totalCompletedCompanyTasks} / ${totalCompanyTasks.length} tasks completed
-    </div>
+const modifier = this.trustModifier(emp.trustScore ?? 80);
+const empEstimate = Math.round(empPendingHours * modifier);
 
-    <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
-      <div style="height:100%;width:${companyPercent}%;
-        background:linear-gradient(90deg,#00c853,#64dd17);">
-      </div>
-    </div>
 
-    <div style="font-size:12px">${companyPercent}%</div>
-`;
+return { emp, empTasks, empEstimate };
 
-// We will append team estimate AFTER employee loop
-let empHtml = "";
 
-for (const emp of myEmployees) {
-  const empTasks = tasksByEmp[emp.empID] || [];
+    });
 
-  // Calculate employee raw hours
-  let empRaw = 0;
+    // Total team estimate = sum of all employee estimates
+    const teamEstimate = employeeResults.reduce(
+      (sum, r) => sum + r.empEstimate,
+      0
+    );
 
-  for (const t of empTasks) {
-    if (!t.startTime || !t.endTime || t.status === "complete") continue;
+    // -------------------------------
+    // 7. BUILD HTML OUTPUT
+    // -------------------------------
+    let html = `
+      <h2 style="margin-bottom:15px">Employee Progress</h2>
 
-    const start = new Date(t.startTime);
-    const end = new Date(t.endTime);
-    if (isNaN(start) || isNaN(end) || end <= start) continue;
+      <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
+        <div style="font-weight:bold">Combined Team</div>
 
-    empRaw += (end - start) / (1000 * 60 * 60);
-  }
+        <div style="font-size:13px">
+          ${totalCompletedCompanyTasks} / ${totalCompanyTasks.length} tasks completed
+        </div>
 
-  // Employee modifier
-  const modifier = this.trustModifier(emp.trustScore ?? 80);
+        <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
+          <div style="height:100%;width:${companyPercent}%;
+            background:linear-gradient(90deg,#00c853,#64dd17);">
+          </div>
+        </div>
 
-  // Final per-employee estimate
-  const empEstimate = Math.round(empRaw * modifier);
+        <div style="font-size:12px">${companyPercent}%</div>
 
-  // Add to team total
-  teamEstimate += empEstimate;
-
-  // Compute completion percentage
-  const total = empTasks.length;
-  const completed = empTasks.filter(t => t.status === "complete").length;
-  const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
-
-  // Build employee HTML
-  empHtml += `
-    <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
-      <div style="font-weight:bold">${emp.name} (ID: ${emp.empID})</div>
-
-      <div style="font-size:13px">
-        ${completed} / ${total} tasks completed
-      </div>
-
-      <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
-        <div style="height:100%;width:${percent}% ;
-          background:linear-gradient(90deg,#00c853,#64dd17);">
+        <div style="margin-top:10px;font-size:13px">
+          Estimated Team Completion: <b>${teamEstimate} hours</b>
         </div>
       </div>
+    `;
 
-      <div style="font-size:12px">${percent}%</div>
+    // -------------------------------
+    // 8. EMPLOYEE-BY-EMPLOYEE CARDS
+    // -------------------------------
+    employeeResults.forEach(r => {
+      const emp = r.emp;
+      const empTasks = r.empTasks;
+      const empEstimate = r.empEstimate;
 
-      <div style="margin-top:8px;font-size:13px">
-        Estimated Completion Time: <b>${empEstimate} hours</b>
-      </div>
-    </div>
-  `;
-}
+      const total = empTasks.length;
+      const completed = empTasks.filter(t =>
+  t.status === "complete" || t.status === "completedLate"
+).length;
 
-// Now append TEAM ESTIMATE (computed correctly from emp estimates)
-html += `
-    <div style="margin-top:10px;font-size:13px">
-      Estimated Team Completion: <b>${teamEstimate} hours</b>
-    </div>
-  </div>
-`;
+      const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
 
-html += empHtml;
+      html += `
+        <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
+          <div style="font-weight:bold">${emp.name} (ID: ${emp.empID})</div>
 
-this.cobox.innerHTML = html;
+          <div style="font-size:13px">
+            ${completed} / ${total} tasks completed
+          </div>
 
+          <div style="background:#eee;height:18px;border-radius:10px;overflow:hidden">
+            <div style="height:100%;width:${percent}%;
+              background:linear-gradient(90deg,#00c853,#64dd17);">
+            </div>
+          </div>
 
+          <div style="font-size:12px">${percent}%</div>
 
+          <div style="margin-top:8px;font-size:13px">
+            Estimated Completion Time: <b>${empEstimate} hours</b>
+          </div>
+
+          <div style="margin-top:6px;font-size:12px;color:#555">
+            Trust Score: <b>${emp.trustScore ?? 80}</b>
+          </div>
+        </div>
+      `;
+    });
+
+    // -------------------------------
+    // 9. Render final HTML
+    // -------------------------------
+    this.cobox.innerHTML = html;
 
   } catch (err) {
     console.error("Progress load error:", err);
     this.cobox.innerHTML = "<div style='color:red'>Failed to load progress</div>";
   }
 }
+
 
 
 
@@ -535,7 +588,8 @@ if (this.currentSection==="inbox"){
         `;
         }
       // check overdue
-      const now = new Date();
+      const now = new Date(new Date().toISOString());
+
 const taskEnd = new Date(item.endTime);
 
 if (!isNaN(taskEnd) && taskEnd < now) {
@@ -714,7 +768,8 @@ async completeTask(event) {
         startTime: taskObj.startTime,
         endTime: taskObj.endTime,
         status: taskObj.sta,
-        proof: taskObj.proof
+        proof: taskObj.proof,
+        submittedAt: new Date().toISOString()
       })
     });
 
@@ -822,7 +877,8 @@ async completeTask(event) {
             task: item.task,
             startTime: item.startTime,
             endTime: item.endTime,
-            status: item.sta
+            status: item.sta,
+            submittedAt: item.submittedAt
           })
         });
         const result = await res.json();

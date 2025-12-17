@@ -73,7 +73,8 @@ const userSchema = new mongoose.Schema({
   endTime: { type: String, required: true },   // now full datetime string
   status: { type: String, required: true },
   proof: { type: String, required: false },
-  durationHours: { type: Number, required: false } // optional computed field
+  durationHours: { type: Number, required: false }, // optional computed field
+  submittedAt: { type: Date, default: Date.now } // when user marked task as done
 });
 
 
@@ -184,12 +185,18 @@ app.delete("/deleteTask", async (req, res) => {
 // ...existing code...
 app.put("/updateTask", async (req, res) => {
   try {
-    const { empID, id, task, startTime, endTime, status, proof } = req.body;
+    const { empID, id, task, startTime, endTime, status, proof, submittedAt } = req.body;
     if (!id) return res.status(400).json({ message: "Task id is required" });
 
     const model = getModel();
 
-    // Build update object only with provided fields
+    // 🔹 Fetch previous version FIRST (for trust transition check)
+    const previous = await model.findOne({ id }).lean();
+    if (!previous) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // 🔹 Build update object
     const updateFields = {};
     if (empID !== undefined) updateFields.empID = empID;
     if (task !== undefined) updateFields.task = task;
@@ -197,43 +204,74 @@ app.put("/updateTask", async (req, res) => {
     if (endTime !== undefined) updateFields.endTime = endTime;
     if (status !== undefined) updateFields.status = status;
     if (proof !== undefined) updateFields.proof = proof;
+    if (submittedAt) updateFields.submittedAt = new Date(submittedAt);
 
-    // If both startTime and endTime are provided (or either provided while the other exists in DB),
-    // compute new durationHours
+    // 🔹 Recompute duration if time changed
     if (startTime !== undefined || endTime !== undefined) {
-      // fetch existing doc if one side is missing from request
-      const existing = await model.findOne({ id }).lean();
-      if (!existing) return res.status(404).json({ message: "Task not found" });
+      const s = startTime ? new Date(startTime) : new Date(previous.startTime);
+      const e = endTime ? new Date(endTime) : new Date(previous.endTime);
 
-      const s = startTime !== undefined ? new Date(startTime) : new Date(existing.startTime);
-      const e = endTime !== undefined ? new Date(endTime) : new Date(existing.endTime);
-
-      if (isNaN(s) || isNaN(e)) {
+      if (isNaN(s) || isNaN(e) || e <= s) {
         return res.status(400).json({ message: "Invalid startTime or endTime" });
       }
-      if (e <= s) {
-        return res.status(400).json({ message: "endTime must be after startTime" });
-      }
 
-      updateFields.durationHours = Math.round(((e - s) / (1000 * 60 * 60)) * 100) / 100;
+      updateFields.durationHours =
+        Math.round(((e - s) / (1000 * 60 * 60)) * 100) / 100;
     }
 
+    // 🔹 Apply task update
     const updated = await model.findOneAndUpdate(
       { id },
       { $set: updateFields },
       { new: true }
     );
 
-    if (!updated) {
-      return res.status(404).json({ message: "Task not found" });
-    }
+    // ==========================================================
+    // ✅ TRUST SCORE UPDATE — ONCE, SAFE, TRANSITION-BASED
+    // ==========================================================
+    if (
+      (status === "complete" || status === "completedLate") &&
+      previous.status !== "complete" &&
+      previous.status !== "completedLate"
+    ) {
+      const doneAt = submittedAt ? new Date(submittedAt) : new Date();
+      const dueAt = new Date(previous.endTime);
 
-    return res.status(200).json({ message: "Task updated successfully", data: updated });
+      if (!isNaN(doneAt) && !isNaN(dueAt)) {
+        const deltaMin = (doneAt - dueAt) / (1000 * 60);
+
+        let change = 0;
+        if (deltaMin <= -5) change = +2;
+        else if (deltaMin <= 10) change = 0;
+        else if (deltaMin <= 30) change = -1;
+        else if (deltaMin <= 60) change = -3;
+        else if (deltaMin <= 180) change = -6;
+        else change = -10;
+
+        await empIDModel.updateOne(
+          { empID },
+          { $inc: { trustScore: change } }
+        );
+
+        console.log(`[TrustScore] ${empID} changed by ${change}`);
+      }
+    }
+    // ==========================================================
+
+    return res.status(200).json({
+      message: "Task updated successfully",
+      data: updated
+    });
+
   } catch (err) {
     console.error("Error updating task:", err);
-    return res.status(500).json({ message: "Internal Server Error", error: err.message });
+    return res.status(500).json({
+      message: "Internal Server Error",
+      error: err.message
+    });
   }
 });
+
 
 
 app.post("/endDay", async (req, res) => {
