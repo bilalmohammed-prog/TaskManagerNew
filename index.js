@@ -230,32 +230,42 @@ app.put("/updateTask", async (req, res) => {
     // ✅ TRUST SCORE UPDATE — ONCE, SAFE, TRANSITION-BASED
     // ==========================================================
     if (
-      (status === "complete" || status === "completedLate") &&
-      previous.status !== "complete" &&
-      previous.status !== "completedLate"
-    ) {
-      const doneAt = submittedAt ? new Date(submittedAt) : new Date();
-      const dueAt = new Date(previous.endTime);
+  submittedAt &&
+  (status === "complete" || status === "completedLate") &&
+  previous.status !== "complete" &&
+  previous.status !== "completedLate"
+) {
+  const doneAt = new Date(submittedAt);
+  const dueAt = new Date(previous.endTime);
 
-      if (!isNaN(doneAt) && !isNaN(dueAt)) {
-        const deltaMin = (doneAt - dueAt) / (1000 * 60);
+  if (!isNaN(doneAt) && !isNaN(dueAt)) {
+    const deltaMin = (doneAt - dueAt) / (1000 * 60);
 
-        let change = 0;
-        if (deltaMin <= -5) change = +2;
-        else if (deltaMin <= 10) change = 0;
-        else if (deltaMin <= 30) change = -1;
-        else if (deltaMin <= 60) change = -3;
-        else if (deltaMin <= 180) change = -6;
-        else change = -10;
+    let change = 0;
+    if (deltaMin <= -5) change = +2;
+    else if (deltaMin <= 10) change = 0;
+    else if (deltaMin <= 30) change = -1;
+    else if (deltaMin <= 60) change = -3;
+    else if (deltaMin <= 180) change = -6;
+    else change = -10;
 
-        await empIDModel.updateOne(
-          { empID },
-          { $inc: { trustScore: change } }
-        );
+    const targetEmpID = empID || previous.empID;
 
-        console.log(`[TrustScore] ${empID} changed by ${change}`);
-      }
-    }
+    const empDoc = await empIDModel.findOne({ empID: targetEmpID }).lean();
+    if (!empDoc) return;
+
+    let newScore = (empDoc.trustScore ?? 80) + change;
+    newScore = Math.max(10, Math.min(100, newScore));
+
+    await empIDModel.updateOne(
+      { empID: targetEmpID },
+      { $set: { trustScore: newScore } }
+    );
+
+    console.log(`[TrustScore] ${targetEmpID}: ${empDoc.trustScore} → ${newScore}`);
+  }
+}
+
     // ==========================================================
 
     return res.status(200).json({
