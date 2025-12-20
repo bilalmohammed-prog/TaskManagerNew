@@ -186,7 +186,6 @@ body::after {
     font-family: 'Roboto', sans-serif;
     font-size: 20px;
     position:fixed;
-    
     padding-right:40px;
     padding-left:40px;
     height:500px;
@@ -195,6 +194,9 @@ body::after {
     max-height: 500px;
     scroll-behavior: smooth;
     color:rgb(245, 241, 237);
+    display:flex;
+  flex-direction:column;
+  gap:18px;
 }
 .cobox,
 .container3,
@@ -1489,3 +1491,44 @@ body::after {
   background:rgba(218,62,62,0.9);
   transform:scale(1.05);
 }
+
+.container3{
+  display:flex;
+  justify-content:space-between; /* keep both sides fixed */
+  align-items:flex-start;
+  min-height:70px;
+  gap:16px;                      /* constant spacing */
+}
+
+/* Left text / editor area always takes space */
+.taskText{
+  flex:1;                        /* reserve width always */
+  min-height:40px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+/* Increase text size inside container3 */
+.container3 .taskText {
+  font-size: 20px;       /* increase character size */
+  font-weight: 400;
+  line-height: 1.6;      /* increases spacing between lines */
+  letter-spacing: 0.5px; /* slight spacing between characters */
+}
+
+/* Increase gap between task name and time line */
+.container3 .taskText br {
+  line-height: 2;
+}
+
+
+/* Right button column never shrinks or moves */
+.container2{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:8px;
+  flex-shrink:0;                  /* prevents squeezing */
+  width:60px;                     /* fixes its position */
+}
+

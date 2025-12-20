@@ -827,8 +827,9 @@ async completeTask(event) {
     const id = container.dataset.class;
     const item = this.info.find(i => i.id === id);
     if (!item) return;
-    if (item.sta === "complete") return; // do not allow edits on completed tasks
-    if (item.overdue) return; // do not allow edits on overdue tasks
+    // block only if submitted
+if (item.sta === "complete" || item.sta === "completedLate") return;
+
     // avoid opening multiple editors on same item
     if (container.querySelector('.edit-input') || container.querySelector('.edit-start') || container.querySelector('.edit-end')) return;
 
@@ -852,11 +853,8 @@ async completeTask(event) {
     endInput.value = item.endTime;
     endInput.setAttribute('aria-label', 'Edit end time (HH:MM)');
 
-    // insert inputs before the controls container so the buttons remain visible
-    const controls = container.querySelector('.container2');
-    container.insertBefore(textInput, controls || null);
-    container.insertBefore(startInput, controls || null);
-    container.insertBefore(endInput, controls || null);
+    taskTextDiv.replaceChildren(textInput, startInput, endInput);
+
 
     // focus the task input first
     textInput.focus();
@@ -872,15 +870,18 @@ async completeTask(event) {
       if (newTask) item.task = newTask;//testing the condition
 
       // validate and apply times separately
-      if (timeRegex.test(newStart)) {
-        item.startTime = newStart;
-      }
-      if (timeRegex.test(newEnd)) {
-        item.endTime = newEnd;
-        const [hStr, mStr] = newEnd.split(':');
-        item.hours = parseInt(hStr, 10);
-        item.mins = parseInt(mStr, 10);
-      }
+      if (newStart) item.startTime = newStart;
+if (newEnd) {
+  item.endTime = newEnd;
+
+  // recompute overdue reference values safely
+  const d = new Date(newEnd);
+  if (!isNaN(d)) {
+    item.hours = d.getHours();
+    item.mins = d.getMinutes();
+  }
+}
+
 
       // recompute overdue
       const nowH = dayjs().hour();
