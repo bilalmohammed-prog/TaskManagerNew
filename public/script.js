@@ -49,6 +49,7 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
     this.draftBtn=document.querySelector(".draft"); 
     this.empDisplay=document.querySelector(".empDisplay");
     this.actualEmpDisplay=document.querySelector(".actualEmpDisplay");
+    this.logoutBtn=document.querySelector(".logout-btn");
     // Bind events once
     this.bindEvents();
   }
@@ -73,6 +74,10 @@ this.currentEmpName = localStorage.getItem("currentEmpName") || null;
     this.switchEmpBtn.addEventListener("click",()=>this.switchEmp());
     this.progress.addEventListener("click", () => this.progressDisplay());
     this.draftBtn.addEventListener("click", () => draft.openDraftPopup());
+
+    document.addEventListener("click", (e) => {
+  if (e.target.closest(".logout-btn")) this.logout();
+});
 
     if (this.recordButton) this.recordButton.addEventListener('click', () => this.openRecordPopup());
     if (this.recordCancel) this.recordCancel.addEventListener("click", () => this.closeRecordPopup());
@@ -550,7 +555,8 @@ if (this.currentSection==="inbox"){
     if (this.currentEmpID && this.currentEmpName) {
       this.empDisplay.innerHTML = `Employee Name: ${this.currentEmpName} <br><br>Employee ID: ${this.currentEmpID}`
       this.actualEmpDisplay.innerHTML = `<br><br>Logged in as:<br> ${this.actualEmpName}
-      <br><br>Your ID: ${this.actualEmpID}`;
+      <br><button class="logout-btn">Logout</button>
+<br>Your ID: ${this.actualEmpID}`;
     } else {
       this.empDisplay.innerHTML = "No employee selected";
     }
@@ -622,6 +628,27 @@ else {
     this.save();
   }
 //enter task
+async logout() {
+  try {
+    await fetch("/auth/logout", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    localStorage.removeItem("actualEmpID");
+    localStorage.removeItem("actualEmpName");
+    localStorage.removeItem("currentEmpID");
+    localStorage.removeItem("currentEmpName");
+    localStorage.removeItem("currentSection");
+    localStorage.removeItem("info");
+
+    window.location.href = "/login.html";
+  } catch (err) {
+    console.error("Logout failed", err);
+    alert("Logout failed");
+  }
+}
+
   async generateTask(event) {
     if (!this.currentEmpID) {
     alert("Select an employee first");

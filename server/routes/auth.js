@@ -163,9 +163,6 @@ router.post('/auth/logout', (req, res) => {
 });
 
 
-router.post("/api/users/complete-profile", async (req, res) => {
-  // existing logic
-});
 
 export default router;
 export { requireAuth };
