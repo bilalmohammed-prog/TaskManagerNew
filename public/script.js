@@ -1038,43 +1038,28 @@ this.empDisplay.innerHTML = "No employee selected";
   async openRecordPopup() {
   this.recordPopup.classList.add('active');
   this.overlay.classList.add('active');
-  this.recordContent.innerHTML = "Loading collections...";
+  this.recordContent.innerHTML = "Loading employees...";
 
   try {
-    const res = await fetch("http://localhost:5500/getAllCollections", {
+    const res = await fetch("http://localhost:5500/getempID", {
       method: "GET",
       headers: { "Content-Type": "application/json" }
     });
 
-    if (!res.ok) {
-      throw new Error(`Request failed with ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`Request failed with ${res.status}`);
 
     const data = await res.json();
-    const collections = data.collections;
+    const empIDCollection = data.employees || [];
 
-    // Extract empID and system collections
-    const empIDCollection = collections.empID || [];
-    const systemCollections = {};
-    
-    // Gather all non-empID collections as "system" data
-    for (const [collectionName, documents] of Object.entries(collections)) {
-      if (collectionName === 'empID' || collectionName.startsWith('system.')) {
-        continue; // Skip empID and MongoDB system collections
-      }
-      systemCollections[collectionName] = documents;
-    }
-
-    // Build the HTML output
     let html = this.renderEmployeeSection(empIDCollection);
-    html += this.renderSystemSection(systemCollections, empIDCollection);
 
-    this.recordContent.innerHTML = html || "<em>No collections found</em>";
+    this.recordContent.innerHTML = html || "<em>No employees found</em>";
   } catch (err) {
-    console.error("Error fetching collections:", err);
-    this.recordContent.innerHTML = `<em>Error loading collections: ${err.message}</em>`;
+    console.error("Error fetching empID:", err);
+    this.recordContent.innerHTML = `<em>Error loading employees: ${err.message}</em>`;
   }
 }
+
 
   // ------------------- INVITATION / INBOX HELPERS -------------------
   async managerInboxRefresh() {
