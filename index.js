@@ -6,7 +6,8 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
-import authRoutes from './server/routes/auth.js';
+import authRoutes, {requireAuth} from './server/routes/auth.js';
+
 import userRoutes from './server/routes/users.js';
 import invitationRoutes from './server/routes/invitations.js';
 const app = express();
@@ -28,11 +29,16 @@ app.use(draftRoutes);
 app.use(cors({ origin: true, credentials: true })); // reflect origin and allow credentials
 app.use(express.json());
 app.use(cookieParser());
+app.use(authRoutes);
+app.use('/login.html', express.static('public/login.html'));
 
+app.use(requireAuth);
+app.use(userRoutes);
+app.use(invitationRoutes);
 // Serve static files (login page, other public assets) so the client is served from the
 // same origin as the API. This prevents Google Identity 'authorization error blocked'
 // caused by loading `login.html` via file:// or another origin not registered with Google.
-app.use(express.static('public'));
+
 
 //mongoDB
 
@@ -84,6 +90,7 @@ const empIDSchema=new mongoose.Schema({
   trustScore: { type: Number, default: 80 }
 })
 const empIDModel=mongoose.model('empID',empIDSchema,'empID');
+
 
 
 app.get("/getempID", async (req, res) => {
@@ -369,9 +376,20 @@ app.get("/getAllCollections", async (req, res) => {
 });
 
 // Mount new auth/user routes (these use cookies for session)
-app.use(authRoutes);
-app.use(userRoutes);
-app.use(invitationRoutes);
+
+
+// everything below requires login
+
+import path from "path";
+
+app.use(express.static('public'));
+
+app.get('/', (req,res)=>{
+  res.sendFile(path.join(process.cwd(), "public", "index.html"));
+});
+
+
+
 
 // Debug-only: list all invitations (enable by setting DEBUG_INBOX=true in env)
 if (process.env.DEBUG_INBOX === 'true') {
@@ -423,3 +441,4 @@ app.get("/switchEmp", async (req, res) => {
     });
   }
 });
+

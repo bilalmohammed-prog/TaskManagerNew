@@ -7,16 +7,13 @@ import jwt from 'jsonwebtoken';
 const router = express.Router();
 import cookieParser from 'cookie-parser';
 
+
 // Required to read cookies from requests
 router.use(cookieParser());
-
-/** Middleware to decode JWT and attach req.userA JWT token 
- (JSON Web Token) is simply a digitally signed string that proves:
-This request comes from the same user who logged in earlier**/
 router.use(async (req, res, next) => {
   try {
-    const token = req.cookies.session;
-    if (!token) return next(); // not logged in → req.user stays undefined
+    const token = req.cookies?.session;
+    if (!token) return next();
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.sub);
@@ -24,20 +21,32 @@ router.use(async (req, res, next) => {
     if (user) req.user = user;
     next();
   } catch (err) {
-    console.error("Auth middleware error:", err.message);
-    // invalid token → clear cookie and continue without req.user
     res.clearCookie("session");
     next();
   }
 });
+function requireAuth(req, res, next) {
+  // If user is logged in, allow
+  if (req.user) {
+  return next();
+}
 
-// Validate environment variables at startup
-if (!process.env.GOOGLE_CLIENT_ID) {
-  console.error('ERROR: GOOGLE_CLIENT_ID is not set in .env');
+
+  // If request is from browser → redirect
+  const acceptsHTML = req.headers.accept?.includes("text/html");
+
+  if (acceptsHTML) {
+    return res.redirect("/login.html");
+  }
+
+  // If request is API → return 401 JSON
+  return res.status(401).json({ error: "Not authenticated" });
 }
-if (!process.env.JWT_SECRET) {
-  console.error('ERROR: JWT_SECRET is not set in .env');
-}
+
+
+
+
+
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -122,8 +131,7 @@ router.post('/auth/google/token', async (req, res) => {
     res.cookie('session', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'lax'
     });
 
     console.log('User authenticated:', { googleId, email, needsName: !user.name });
@@ -154,4 +162,10 @@ router.post('/auth/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+
+router.post("/api/users/complete-profile", async (req, res) => {
+  // existing logic
+});
+
 export default router;
+export { requireAuth };
