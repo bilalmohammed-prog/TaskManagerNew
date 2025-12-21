@@ -134,17 +134,24 @@
 
             <!-- Time Range -->
             <div class="assign-form-group">
-                <label for="assignTimeInput" class="assign-form-label">Time Range *</label>
-                <input 
-                    type="text" 
-                    id="assignTimeInput" 
-                    class="assign-form-input" 
-                    placeholder="e.g., 09:00 - 17:00"
-                    required
-                    aria-required="true"
-                />
-                <span class="assign-validation-message" id="assignTimeValidation">Time range is required (format: HH:MM - HH:MM)</span>
-            </div>
+  <label class="assign-form-label">Start Time *</label>
+  <input 
+    type="datetime-local" 
+    id="assignStartInput" 
+    class="assign-form-input"
+   
+  />
+
+  <label class="assign-form-label" style="margin-top:8px;">End Time *</label>
+  <input 
+    type="datetime-local" 
+    id="assignEndInput" 
+    class="assign-form-input"
+    
+  />
+
+</div>
+
 
             <!-- Action Buttons -->
             <div class="assign-modal-actions">

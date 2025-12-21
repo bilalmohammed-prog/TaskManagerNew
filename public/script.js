@@ -1633,10 +1633,12 @@ class AssignTaskModal {
         this.cancelBtn = document.getElementById('assignCancelBtn');
         this.form = document.getElementById('assignTaskForm');
         this.taskInput = document.getElementById('assignTaskInput');
-        this.timeInput = document.getElementById('assignTimeInput');
+        this.startInput = document.getElementById('assignStartInput');
+this.endInput = document.getElementById('assignEndInput');
+
         this.okBtn = document.getElementById('assignOkBtn');
         this.taskValidation = document.getElementById('assignTaskValidation');
-        this.timeValidation = document.getElementById('assignTimeValidation');
+        
         
         this.bindEvents();
     }
@@ -1664,7 +1666,9 @@ class AssignTaskModal {
         
         // Validate on input
         if (this.taskInput) this.taskInput.addEventListener('input', () => this.validateForm());
-        if (this.timeInput) this.timeInput.addEventListener('input', () => this.validateForm());
+        if (this.startInput) this.startInput.addEventListener('input', () => this.validateForm());
+if (this.endInput) this.endInput.addEventListener('input', () => this.validateForm());
+
         
         // Handle form submission
         if (this.form) this.form.addEventListener('submit', (e) => this.handleSubmit(e));
@@ -1705,46 +1709,38 @@ class AssignTaskModal {
     }
     
     validateForm() {
-        const taskValue = this.taskInput ? this.taskInput.value.trim() : '';
-        const timeValue = this.timeInput ? this.timeInput.value.trim() : '';
-        
-        // Enable OK button only if both fields have values
-        if (this.okBtn) {
-            this.okBtn.disabled = !(taskValue && timeValue);
-        }
-        
-        // Hide validation messages when user starts typing
-        if (taskValue && this.taskValidation) {
-            this.taskValidation.classList.remove('show');
-        }
-        if (timeValue && this.timeValidation) {
-            this.timeValidation.classList.remove('show');
-        }
-    }
+  const taskValue = this.taskInput ? this.taskInput.value.trim() : '';
+  const startValue = this.startInput ? this.startInput.value.trim() : '';
+  const endValue = this.endInput ? this.endInput.value.trim() : '';
+
+  this.okBtn.disabled = !(taskValue && startValue && endValue);
+}
+
     
     showValidationErrors() {
-        const taskValue = this.taskInput ? this.taskInput.value.trim() : '';
-        const timeValue = this.timeInput ? this.timeInput.value.trim() : '';
-        
-        if (!taskValue && this.taskValidation) {
-            this.taskValidation.classList.add('show');
-        }
-        if (!timeValue && this.timeValidation) {
-            this.timeValidation.classList.add('show');
-        }
-    }
+  const taskValue = this.taskInput ? this.taskInput.value.trim() : '';
+  const startValue = this.startInput ? this.startInput.value.trim() : '';
+  const endValue = this.endInput ? this.endInput.value.trim() : '';
+
+  if (!taskValue && this.taskValidation) this.taskValidation.classList.add('show');
+  if ((!startValue || !endValue) && this.timeValidation) this.timeValidation.classList.add('show');
+}
+
     
     async handleSubmit(event) {
         event.preventDefault();
         
         const taskValue = this.taskInput ? this.taskInput.value.trim() : '';
-        const timeValue = this.timeInput ? this.timeInput.value.trim() : '';
+        const startValue = this.startInput ? this.startInput.value.trim() : '';
+const endValue = this.endInput ? this.endInput.value.trim() : '';
+
         
         // Validate inputs
-        if (!taskValue || !timeValue) {
-            this.showValidationErrors();
-            return;
-        }
+        if (!taskValue || !startValue || !endValue) {
+    this.showValidationErrors();
+    return;
+}
+
         
         // Show loading state
         if (this.okBtn) {
@@ -1754,7 +1750,8 @@ class AssignTaskModal {
         
         try {
             // Use the existing TaskManager instance to create the task
-            await this.createTaskViaManager(taskValue, timeValue);
+            await this.createTaskViaManager(taskValue, `${startValue} - ${endValue}`);
+
             
             // Close modal on success
             this.closeModal();
