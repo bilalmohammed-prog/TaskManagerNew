@@ -192,11 +192,11 @@ async progressDisplayReload() {
     // -------------------------------
     // 2. Fetch all DB collections
     // -------------------------------
-    const res = await fetch("http://localhost:5500/getAllCollections");
+    const res = await fetch("https://taskmanagernew-jpeq.onrender.com/getAllCollections");
     const data = await res.json();
 
     // Always fetch the up-to-date employee list (trustScore included)
-const empRes = await fetch("http://localhost:5500/getempID");
+const empRes = await fetch("https://taskmanagernew-jpeq.onrender.com/getempID");
 const empData = await empRes.json();
 const employees = empData.employees || [];
 
@@ -399,7 +399,7 @@ return { emp, empTasks, empEstimate };
       this.managerInboxRefresh();
     }
     try {
-    const res = await fetch(`http://localhost:5500/getCurrentTasks?empID=${retrieveFrom}`, {
+    const res = await fetch(`https://taskmanagernew-jpeq.onrender.com/getCurrentTasks?empID=${retrieveFrom}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" }
     });
@@ -496,7 +496,7 @@ async createEmp() {
 
 async switchEmp() {
   try {
-    const res = await fetch("http://localhost:5500/switchEmp");
+    const res = await fetch("https://taskmanagernew-jpeq.onrender.com/switchEmp");
     const data = await res.json();
 
     // Show list of employees for user to pick
@@ -534,7 +534,7 @@ async switchEmp() {
 async loadempID() {
     try {
       // Use the endpoint that knows about the current collection on the server
-      const res = await fetch("http://localhost:5500/getempID", {
+      const res = await fetch("https://taskmanagernew-jpeq.onrender.com/getempID", {
         method: "GET",
         headers: { "Content-Type": "application/json" }
       });
@@ -721,7 +721,7 @@ let mins = endDate.getMinutes();
       console.log("TaskObj found:", taskObj);
       if (taskObj) {
         try {
-          const res = await fetch("http://localhost:5500/addTask", {
+          const res = await fetch("https://taskmanagernew-jpeq.onrender.com/addTask", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -767,7 +767,7 @@ let mins = endDate.getMinutes();
     if (!confirm("Delete this task?")) return;
 
     try {
-      const res = await fetch("http://localhost:5500/deleteTask", {
+      const res = await fetch("https://taskmanagernew-jpeq.onrender.com/deleteTask", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: taskObj.id })
@@ -808,7 +808,7 @@ async completeTask(event) {
 
   // ✅ ALWAYS UPDATE BACKEND (even if overdue)
   try {
-    const res = await fetch("http://localhost:5500/updateTask", {
+    const res = await fetch("https://taskmanagernew-jpeq.onrender.com/updateTask", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -919,7 +919,7 @@ if (newEnd) {
 
       // also persist updated task to backend
       try {
-        const res = await fetch("http://localhost:5500/updateTask", {
+        const res = await fetch("https://taskmanagernew-jpeq.onrender.com/updateTask", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1046,7 +1046,7 @@ this.empDisplay.innerHTML = "No employee selected";
 
   async submitReason(reason) {
     try {
-      const res = await fetch("http://localhost:5500/evaluate-reason", {
+      const res = await fetch("https://taskmanagernew-jpeq.onrender.com/evaluate-reason", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason })
@@ -1065,7 +1065,7 @@ this.empDisplay.innerHTML = "No employee selected";
   this.recordContent.innerHTML = "Loading employees...";
 
   try {
-    const res = await fetch("http://localhost:5500/getempID", {
+    const res = await fetch("https://taskmanagernew-jpeq.onrender.com/getempID", {
       method: "GET",
       headers: { "Content-Type": "application/json" }
     });
@@ -1299,8 +1299,8 @@ await this.renderInboxToCobox();   // refresh once, at the end
       const [r1, r2, r3, r4] = await Promise.all([
         fetch('/api/invitations?received=true', { credentials: 'include' }),
         fetch('/api/invitations?sent=true', { credentials: 'include' }),
-        fetch(`http://localhost:5500/draft?receiverID=${actualEmpID}`),
-        fetch(`http://localhost:5500/draft/sent?senderID=${actualEmpID}`)
+        fetch(`https://taskmanagernew-jpeq.onrender.com/draft?receiverID=${actualEmpID}`),
+        fetch(`https://taskmanagernew-jpeq.onrender.com/draft/sent?senderID=${actualEmpID}`)
       ]);
 
       if (r1.status === 401 || r2.status === 401) {
@@ -1824,7 +1824,7 @@ const endValue = this.endInput ? this.endInput.value.trim() : '';
     this.taskManager.save();
     this.taskManager.renderTasks();
 
-    const res = await fetch("http://localhost:5500/addTask", {
+    const res = await fetch("https://taskmanagernew-jpeq.onrender.com/addTask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -1952,7 +1952,7 @@ class SwitchEmpModal {
         this.showLoading();
         
         try {
-            const res = await fetch("http://localhost:5500/switchEmp");
+            const res = await fetch("https://taskmanagernew-jpeq.onrender.com:5500/switchEmp");
             
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
@@ -2231,7 +2231,7 @@ class draftPopup {
 
     try {
       // backend send API
-      await fetch("http://localhost:5500/draft", {
+      await fetch("https://taskmanagernew-jpeq.onrender.com/draft", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
