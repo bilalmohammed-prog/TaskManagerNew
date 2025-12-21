@@ -565,15 +565,19 @@ if (this.currentSection==="inbox"){
   this.draftBtn.style.display = 'none';
 }
   if (this.empDisplay) {
-    if (this.currentEmpID && this.currentEmpName) {
-      this.empDisplay.innerHTML = `Employee Name: ${this.currentEmpName} <br><br>Employee ID: ${this.currentEmpID}`
-      this.actualEmpDisplay.innerHTML = `<br><br>Logged in as:<br> ${this.actualEmpName}
-      <br><button class="logout-btn">Logout</button>
-<br>Your ID: ${this.actualEmpID}`;
-    } else {
-      this.empDisplay.innerHTML = "No employee selected";
-    }
+  if (this.currentEmpID && this.currentEmpName) {
+    this.empDisplay.innerHTML = `Employee Name: ${this.currentEmpName} <br><br>Employee ID: ${this.currentEmpID}`;
+  } else {
+    this.empDisplay.innerHTML = "No employee selected";
   }
+
+  this.actualEmpDisplay.innerHTML = `
+    <br><br>Logged in as:<br> ${this.actualEmpName}
+    <br><button class="logout-btn">Logout</button>
+    <br>Your ID: ${this.actualEmpID}
+  `;
+}
+
     
     this.cobox.innerHTML = "";
 
@@ -650,12 +654,8 @@ async logout() {
       credentials: "include"
     });
 
-    localStorage.removeItem("actualEmpID");
-    localStorage.removeItem("actualEmpName");
-    localStorage.removeItem("currentEmpID");
-    localStorage.removeItem("currentEmpName");
-    localStorage.removeItem("currentSection");
-    localStorage.removeItem("info");
+    // Clear everything
+    localStorage.clear();
 
     window.location.href = "/login.html";
   } catch (err) {
@@ -1435,7 +1435,12 @@ renderEmployeeSection(empIDCollection) {
   if (!empIDCollection || empIDCollection.length === 0) {
     html += `<em style="margin-left: 15px;">No employees found</em>`;
   } else {
-    empIDCollection.forEach(employee => {
+    const managerID = localStorage.getItem("actualEmpID");
+
+empIDCollection
+  .filter(e => e.managerID === managerID)
+  .forEach(employee => {
+
       html += `<div style="
   margin: 15px 0;
   padding: 12px;
@@ -1942,13 +1947,17 @@ class SwitchEmpModal {
             }
             
             const data = await res.json();
-            this.employees = data.employees || [];
-            
-            if (this.employees.length === 0) {
-                this.showEmpty();
-            } else {
-                this.renderEmployeeList();
-            }
+            const managerID = localStorage.getItem("actualEmpID");
+
+// only employees belonging to this manager
+this.employees = (data.employees || []).filter(e => e.managerID === managerID);
+
+if (this.employees.length === 0) {
+  this.showEmpty();
+} else {
+  this.renderEmployeeList();
+}
+
         } catch (err) {
             console.error("Error fetching employees:", err);
             this.showError();

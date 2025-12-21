@@ -35,7 +35,13 @@
           body: JSON.stringify({ id_token }),
         });
         console.log('Response status:', res.status);
+
         const text = await res.text();
+
+        localStorage.setItem("actualEmpID", text.empID);
+localStorage.setItem("actualEmpName", text.name || "");
+
+
         console.log('Response text:', text);
         if (!text) throw new Error('Server returned empty response');
         let data;
@@ -64,6 +70,9 @@
         const actualEmpID=data.empID;
         localStorage.setItem("actualEmpName", actualEmpName);
         localStorage.setItem("actualEmpID", actualEmpID);
+        localStorage.setItem("currentSection", "employees");
+
+
         window.location.href = '/';
       } catch (err) {
         console.error('Signin error:', err);
