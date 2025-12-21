@@ -185,36 +185,42 @@ router.patch('/api/invitations/:id/cancel', requireAuth, async (req, res) => {
 });
 router.post('/api/employee/drop', requireAuth, async (req, res) => {
   try {
-    const { empID } = req.body;
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "email required" });
 
-    if (!empID) return res.status(400).json({ error: "empID required" });
-
-    const manager = await User.findById(req.userId);
+    const manager = req.user; // already loaded by requireAuth
     if (!manager) return res.status(401).json({ error: "Manager not found" });
 
-    const employee = await User.findOne({ empID });
+    const employee = await User.findOne({ email: email.toLowerCase() });
     if (!employee) return res.status(404).json({ error: "Employee not found" });
 
     if (employee.managerID !== manager.empID)
       return res.status(403).json({ error: "Employee not under this manager" });
 
-    // ✅ REMOVE MANAGER LINK
+    // Prevent self-drop
+    if (employee._id.equals(manager._id))
+      return res.status(400).json({ error: "You cannot drop yourself" });
+
+    // Remove manager link
     employee.managerID = null;
     await employee.save();
 
-    // ✅ SEND NOTIFICATIONS TO BOTH
-    await Notification.create([
-      {
-        userId: employee._id,
-        type: "employee_dropped",
-        payload: { managerEmpID: manager.empID }
-      },
-      {
-        userId: manager._id,
-        type: "employee_dropped_confirm",
-        payload: { droppedEmpID: employee.empID }
-      }
-    ]);
+    // Optional notifications if you actually have Notification model
+    // safe to keep if exists, otherwise remove
+    try {
+      await Notification.create([
+        {
+          userId: employee._id,
+          type: "employee_dropped",
+          payload: { managerEmpID: manager.empID }
+        },
+        {
+          userId: manager._id,
+          type: "employee_dropped_confirm",
+          payload: { droppedEmpID: employee.empID }
+        }
+      ]);
+    } catch {}
 
     res.json({ ok: true });
 
@@ -223,5 +229,6 @@ router.post('/api/employee/drop', requireAuth, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 export default router;

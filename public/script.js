@@ -462,16 +462,16 @@ async createEmp() {
 
   } else {
     // ✅ DROP EMPLOYEE
-    const empID = prompt("Enter Employee ID to remove");
+    const email = prompt("Enter Employee email to remove");
 
-    if (!empID) return alert("Employee ID required");
+    if (!email) return alert("Employee email required");
 
     try {
       const res = await fetch("/api/employee/drop", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ empID })
+        body: JSON.stringify({ email })
       });
 
       const data = await res.json();
@@ -1179,12 +1179,13 @@ this.empDisplay.innerHTML = "No employee selected";
             const data = await res.json();
             // refresh lists
             await this.renderInbox();
-            if (action === 'accept') {
-              // reload tasks and emp list because managerID may be assigned
-              await this.loadempID();
-              await this.loadTasksFromDatabase();
-              this.renderTasks();
-            }
+           if (action === 'accept') {
+  await this.loadempID();
+  await this.loadTasksFromDatabase();
+}
+
+await this.renderInboxToCobox();   // refresh once, at the end
+
           } else {
             const err = await res.json().catch(()=>({ error: res.status }));
             alert('Action failed: ' + (err.error || err.message || res.status));
@@ -1382,38 +1383,44 @@ const receivedDrafts = d4.drafts || [];
 
       // delegate buttons inside cobox for accept/reject
       this.cobox.onclick = async (e) => {
-        const btn = e.target.closest && e.target.closest('[data-inv-action]');
-        if (!btn) return;
-        const invId = btn.dataset.invId;
-        const action = btn.dataset.invAction;
-        if (!invId || !action) return;
-        try {
-          btn.disabled = true;
-          const res = await fetch(`/api/invitations/${invId}/respond`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action })
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(()=>({ error: res.status }));
-            alert('Action failed: ' + (err.error || err.message || res.status));
-            btn.disabled = false;
-            return;
-          }
-          // refresh cobox
-          await this.renderInboxToCobox();
-          if (action === 'accept') {
-            await this.loadempID();
-            await this.loadTasksFromDatabase();
-            this.renderTasks();
-          }
-        } catch (err) {
-          console.error('Respond error', err);
-          alert('Network error');
-          btn.disabled = false;
-        }
-      };
+  const btn = e.target.closest?.('[data-inv-action]');
+  if (!btn) return;
+
+  const invId = btn.dataset.invId;
+  const action = btn.dataset.invAction;
+
+  try {
+    btn.disabled = true;
+
+    const res = await fetch(`/api/invitations/${invId}/respond`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.status }));
+      alert('Action failed: ' + (err.error || err.message || res.status));
+      btn.disabled = false;
+      return;
+    }
+
+    if (action === 'accept') {
+      await this.loadempID();   // update manager/employee link
+    }
+
+    // ✅ stay in inbox
+    this.currentSection = "inbox";
+    await this.renderInboxToCobox();   // render ONCE only
+
+  } catch (err) {
+    console.error('Respond error', err);
+    alert('Network error');
+    btn.disabled = false;
+  }
+};
+
 
     } catch (err) {
       console.error('renderInboxToCobox error', err);

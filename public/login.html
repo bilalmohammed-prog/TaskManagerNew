@@ -36,21 +36,9 @@
         });
         console.log('Response status:', res.status);
 
-        const text = await res.text();
+        const data = await res.json();
+console.log("Login response:", data);
 
-        localStorage.setItem("actualEmpID", text.empID);
-localStorage.setItem("actualEmpName", text.name || "");
-
-
-        console.log('Response text:', text);
-        if (!text) throw new Error('Server returned empty response');
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (jsonErr) {
-          console.error('Failed to parse JSON. Response text:', text);
-          throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`);
-        }
         if (!data) throw new Error(data.error || 'Login failed');
         if (!data.name) {
           const name = prompt('Please enter your full name (required)');
@@ -61,7 +49,7 @@ localStorage.setItem("actualEmpName", text.name || "");
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name }),
           });
-          
+          data.name = name;
           
           
         }
