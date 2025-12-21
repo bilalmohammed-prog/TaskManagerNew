@@ -339,7 +339,15 @@ return { emp, empTasks, empEstimate };
 
       html += `
         <div style="margin-bottom:20px;padding:10px;border:1px solid #ddd;border-radius:6px">
-          <div style="font-weight:bold">${emp.name} (ID: ${emp.empID})</div>
+          <div style="margin-bottom:6px">
+  <div style="font-weight:bold;">
+    ${emp.name} <span style="color:#ddd">(ID: ${emp.empID})</span>
+  </div>
+  <div style="font-size:12px; color:#ddd; margin-top:2px;">
+    ${emp.email || "No Email"}
+  </div>
+</div>
+
 
           <div style="font-size:13px">
             ${completed} / ${total} tasks completed
@@ -357,8 +365,8 @@ return { emp, empTasks, empEstimate };
             Estimated Completion Time: <b>${empEstimate} hours</b>
           </div>
 
-          <div style="margin-top:6px;font-size:12px;color:#555">
-            Trust Score: <b>${emp.trustScore ?? 80}</b>
+          <div style="margin-top:6px;font-size:12px;color:#ddd">
+            Trust Score: <b style="color:#ddd">${emp.trustScore ?? 80}</b>
           </div>
         </div>
       `;
