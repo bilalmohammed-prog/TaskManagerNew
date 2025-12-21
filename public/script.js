@@ -14,6 +14,19 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function prettyDateTime(dt) {
+  const d = new Date(dt);
+  if (isNaN(d)) return dt;
+
+  return d.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true
+  });
+}
 
 
 // ------------------- TASK MANAGER CLASS -------------------
@@ -569,7 +582,9 @@ if (this.currentSection==="inbox"){
   this.cobox.innerHTML += `
     <div class="container3" data-class="${item.id}">
       <div class="taskText">
-        ${item.task} :<br> ${item.startTime} to ${item.endTime}
+        ${item.task} :<br>
+${prettyDateTime(item.startTime)} → ${prettyDateTime(item.endTime)}
+
       </div>
       <div class="container2">
         <button class="delete-button" data-class="${item.id}">X</button>
