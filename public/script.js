@@ -557,11 +557,14 @@ if (this.currentSection==="inbox"){
     this.empDisplay.innerHTML = "No employee selected";
   }
 
+  if (this.actualEmpDisplay) {
   this.actualEmpDisplay.innerHTML = `
     <br><br>Logged in as:<br> ${this.actualEmpName}
     <br><button class="logout-btn">Logout</button>
     <br>Your ID: ${this.actualEmpID}
   `;
+}
+
 }
 
     
@@ -2049,6 +2052,53 @@ if (this.employees.length === 0) {
     }
 }
 const app1 = new TaskManager();
+
+// ================= PROFILE DROPDOWN LOGIC =================
+(function () {
+  const profileIcon = document.querySelector(".profile-icon");
+  const dropdown = document.getElementById("profileDropdown");
+
+  if (!profileIcon) {
+    console.warn("profile-icon NOT FOUND");
+    return;
+  }
+
+  if (!dropdown) {
+    console.warn("profileDropdown NOT FOUND");
+    return;
+  }
+
+  function loadProfileData() {
+    document.getElementById("profileName").textContent =
+      localStorage.getItem("actualEmpName") || "Unknown";
+
+    document.getElementById("profileID").textContent =
+      "ID: " + (localStorage.getItem("actualEmpID") || "N/A");
+
+    document.getElementById("profileEmail").textContent =
+      "Email: " + (localStorage.getItem("actualEmpEmail") || "Not Set");
+
+    document.getElementById("profileInitial").textContent =
+      (localStorage.getItem("actualEmpName") || "?").charAt(0).toUpperCase();
+  }
+
+  profileIcon.addEventListener("click", () => {
+    loadProfileData();
+    dropdown.classList.toggle("show");
+  });
+
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".profile-wrapper")) {
+      dropdown.classList.remove("show");
+    }
+  });
+    loadProfileData();   // <-- ADD THIS
+
+})();
+
+
+
+
 const assignModal = new AssignTaskModal(app1);
 const switchEmpModal = new SwitchEmpModal(app1);
 //switching sections

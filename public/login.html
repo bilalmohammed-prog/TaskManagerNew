@@ -58,6 +58,7 @@ console.log("Login response:", data);
         const actualEmpID=data.empID;
         localStorage.setItem("actualEmpName", actualEmpName);
         localStorage.setItem("actualEmpID", actualEmpID);
+        localStorage.setItem("actualEmpEmail", data.email);
         localStorage.setItem("currentSection", "employees");
 
 
