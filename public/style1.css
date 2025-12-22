@@ -97,28 +97,27 @@ body::after {
     object-fit: contain;
 }
 .rsidebar{
-    position: fixed;
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    right:0px;
-    top:0px;
-    bottom:0px;
-    display:flex;
-    width:300px;
-    background-color: rgba(0, 0, 0, 0.5);
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
-    border-left: 1px solid var(--soft-border);
+  position: fixed;
+  top:0;
+  left:0;
+  right:0;
+
+  height:60px;                     /* top bar height */
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  background-color: rgba(0, 0, 0, 0.5);
+  border-bottom:1px solid var(--soft-border);
+  z-index:1000;
 }
+
 .assign {
     
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    display: flex;
+    flex-direction: horizontal;
     gap: 12px;
-    width: 100px;
-    height: 100px;
+    
     background-color: transparent;
    
 }
@@ -575,9 +574,7 @@ body::after {
 .actualEmpDisplay{
     top:0px;
 }
-.empDisplay{
-    top:500px;
-}
+
 .createEmp:hover,.switchEmp:hover,.inbox:hover,.empAccess:hover,.managerAccess:hover, .draft:hover {
     background-color: rgba(255, 255, 255, 0.15);
     transition: background-color 0.2s ease, transform 0.2s ease;
@@ -1296,6 +1293,17 @@ body::after {
     justify-content: flex-start;  /* vertically center group of buttons */
     gap: 10px;                /* 10px vertical space between buttons */
 }
+.lsidebar {
+  position: fixed;
+  top: 60px;                        /* SAME as top bar height */
+  left: 0;
+  width: 60px;
+  height: calc(100% - 70px);        /* fill remaining height */
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
 
 .hidden {
     display: none !important;
@@ -1627,4 +1635,8 @@ body::after {
 
 .profile-dropdown.show{
   display:block;
+}
+.rsidebar .assign{
+  align-items:center;
+  justify-content:center;
 }

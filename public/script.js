@@ -556,16 +556,13 @@ if (this.currentSection==="inbox"){
   } else {
     this.empDisplay.innerHTML = "No employee selected";
   }
-
-  if (this.actualEmpDisplay) {
+if(this.actualEmpID && this.actualEmpDisplay){
   this.actualEmpDisplay.innerHTML = `
     <br><br>Logged in as:<br> ${this.actualEmpName}
     <br><button class="logout-btn">Logout</button>
     <br>Your ID: ${this.actualEmpID}
   `;
-}
-
-}
+}}
 
     
     this.cobox.innerHTML = "";
@@ -2092,8 +2089,7 @@ const app1 = new TaskManager();
       dropdown.classList.remove("show");
     }
   });
-    loadProfileData();   // <-- ADD THIS
-
+  loadProfileData();
 })();
 
 
