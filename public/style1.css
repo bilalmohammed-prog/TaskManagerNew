@@ -1574,8 +1574,8 @@ body::after {
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  background: linear-gradient(45deg,#6A11CB,#2575FC);
-  color: white;
+  background: white;
+  color: #2f2f2f;
   font-weight: bold;
   font-size: 18px;
   display: flex;
@@ -1697,3 +1697,39 @@ body::after {
   }
 }
 
+@media (max-width: 768px){
+
+  .rsidebar{
+     height:50px;
+     top:0;
+  }
+
+  .lsidebar{
+     top:50px;
+     width:55px;
+     height:calc(100vh - 50px);
+     overflow-y:auto;   /* IMPORTANT */
+  }
+
+  .cobox{
+     margin-top:60px;          /* space for top bar */
+     margin-left:65px;         /* space for sidebar */
+     width:calc(100vw - 85px); /* fits perfectly */
+     max-width:none;
+  }
+
+  .empBarInfo{
+    max-width: 70vw;
+    
+    
+    text-overflow: ellipsis;
+  }
+}
+.lsidebar-bottom{
+  padding-bottom:10px;
+}
+
+
+html, body {
+  overflow-x: hidden;
+}
