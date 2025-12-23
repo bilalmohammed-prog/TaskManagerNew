@@ -845,14 +845,27 @@ if (item.sta === "complete" || item.sta === "completedLate") return;
     textInput.setAttribute('aria-label', 'Edit task');
 
     const startInput = document.createElement('input');
-    startInput.className = 'edit-start';
-    startInput.value = item.startTime;
-    startInput.setAttribute('aria-label', 'Edit start time (HH:MM)');
+startInput.className = 'edit-start';
+startInput.type = "datetime-local";
 
-    const endInput = document.createElement('input');
-    endInput.className = 'edit-end';
-    endInput.value = item.endTime;
-    endInput.setAttribute('aria-label', 'Edit end time (HH:MM)');
+// convert stored ISO => datetime-local format
+try {
+  startInput.value = new Date(item.startTime).toISOString().slice(0,16);
+} catch {
+  startInput.value = "";
+}
+
+
+const endInput = document.createElement('input');
+endInput.className = 'edit-end';
+endInput.type = "datetime-local";
+
+try {
+  endInput.value = new Date(item.endTime).toISOString().slice(0,16);
+} catch {
+  endInput.value = "";
+}
+
 
     taskTextDiv.replaceChildren(textInput, startInput, endInput);
 
