@@ -26,3 +26,5 @@ trust points which involves how theyve done previous tasks,have modifiers,
 12. make it so that the increase in trust points is proprotional to time of task too
 
 13. add task title then description.
+
+14. Make proof of work visible appropriateley
