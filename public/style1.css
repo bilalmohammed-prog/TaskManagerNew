@@ -8,6 +8,7 @@ body {
   align-items: center;
   justify-content: center;
 
+
   background-color: #2f2f2f;
   overflow-y: auto;
   position: relative;
@@ -33,7 +34,9 @@ body::after {
   pointer-events: none;
   z-index: 2;
 }
-
+body{
+  padding-top:60px;   /* same as rsidebar height */
+}
 
 
 
@@ -110,12 +113,13 @@ body::after {
   grid-template-columns: 1fr auto 1fr;
   align-items:center;
 
-  background: rgba(0,0,0,0.5);
+  background:#000000;                /* SOLID black */
   border-bottom:1px solid var(--soft-border);
   z-index:1000;
   padding:0 16px;
   box-sizing:border-box;
 }
+
 
 
 
@@ -1359,7 +1363,7 @@ body::after {
   width: 60px;
   height: calc(100vh - 60px);   /* fills precisely remaining space */
     padding-top: 10px;
-  background: rgba(0,0,0,0.5);
+  background:#000000;  
   border-right: 1px solid var(--soft-border);
   z-index: 999;
 
@@ -1844,4 +1848,16 @@ html, body {
   gap:10px !important;
   margin-left:auto !important;   /* pushes to right */
   width:auto !important;         /* remove fixed width */
+}
+.cobox{
+  margin-top: 10px;
+}
+.task {
+  position: relative;
+  top: unset;
+}
+
+.time {
+  position: relative;
+  top: unset;
 }
