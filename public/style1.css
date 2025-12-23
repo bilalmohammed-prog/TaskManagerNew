@@ -1978,7 +1978,7 @@ html, body {
 .update-button:hover,
 .completed-button:hover{
   transform: scale(1.1);
-  filter: brightness(1.1);
+
 }
 
 /* MAKE COBOX INVISIBLE */
@@ -1998,3 +1998,62 @@ html, body {
 
 
 
+/* Base icon action button */
+.action-btn{
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  cursor:pointer;
+  transition: .2s ease;
+}
+
+/* Hover – subtle glow */
+.action-btn:hover{
+  transform: translateY(-2px);
+
+}
+
+/* Individual meaning colors */
+.delete-button{
+  border-color:#ff6b6b;
+
+  background:#ff4d4d;
+}
+
+.completed-button{
+  border-color:#6dffa1;
+  background:#42d98d;
+}
+
+.update-button{
+  border-color:#66b7ff;
+  background:#4aa9ff;
+}
+
+/* Icon inside buttons */
+.action-btn svg {
+  width: 18px;
+  height: 18px;
+
+}
+.action-btn,
+.action-btn svg{
+  transform: translateZ(0);
+  image-rendering: crisp-edges;
+}
+.completed-button{
+  background:#42d98d !important;
+  border:1px solid #42d98d;
+}
+.completed-button{
+  -webkit-backface-visibility:hidden;
+  transform: translateZ(0);
+}
