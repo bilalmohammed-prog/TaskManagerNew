@@ -101,16 +101,20 @@ body::after {
   top:0;
   left:0;
   right:0;
+  height:60px;
 
-  height:60px;                     /* top bar height */
-  display:flex;
-  justify-content:center;
+  display:grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items:center;
 
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   border-bottom:1px solid var(--soft-border);
   z-index:1000;
+  padding:0 16px;
+  box-sizing:border-box;
 }
+
+
 
 .assign {
     
@@ -180,11 +184,9 @@ body::after {
 
 .cobox{
     background-color: transparent;
-    left:200px;
     padding: 10px;
     font-family: 'Roboto', sans-serif;
     font-size: 20px;
-    position:fixed;
     padding-right:40px;
     padding-left:40px;
     height:500px;
@@ -203,6 +205,15 @@ body::after {
  {
     word-break: break-all;  /* Breaks at any character, more aggressive */
     overflow-wrap: break-word;
+}
+.cobox{
+  position: relative;
+  margin-left: 100px;   /* space for sidebar */
+  margin-top: 20px;     /* space for top bar */
+  width: 60vw;
+  max-width: 900px;
+  height: auto;
+  max-height: 70vh;
 }
 
 /* Custom scrollbar for .cobox */
@@ -562,18 +573,29 @@ body::after {
     position:absolute;
     
 }
-.empDisplay,.actualEmpDisplay  {
-    position:absolute;
-    right:-50px;
-    width:300px;
-    font-weight: lighter;
-    font-family: 'Roboto', sans-serif;
-    color: rgb(245, 241, 237);
-    font-size:18px;
+.empBarInfo{
+  justify-self: end;
+  color:white;
+  font-family:'Roboto',sans-serif;
+  font-size:16px;
 }
+
+
+.empDisplay{
+  white-space:nowrap;
+}
+
+
+.empDisplay,
 .actualEmpDisplay{
-    top:0px;
+  position: static;       /* IMPORTANT remove absolute behavior */
+  font-family:'Roboto',sans-serif;
+  font-size:16px;
+  color:white;
+  white-space:nowrap;
 }
+
+
 
 .createEmp:hover,.switchEmp:hover,.inbox:hover,.empAccess:hover,.managerAccess:hover, .draft:hover {
     background-color: rgba(255, 255, 255, 0.15);
@@ -1276,34 +1298,22 @@ body::after {
 }
 
 .lsidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 60px;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-right: 1px solid var(--soft-border);
-    z-index: 50;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;      /* horizontally center buttons */
-
-    padding-top: 10px;
-    justify-content: flex-start;  /* vertically center group of buttons */
-    gap: 10px;                /* 10px vertical space between buttons */
-}
-.lsidebar {
   position: fixed;
-  top: 60px;                        /* SAME as top bar height */
+  top: 60px;                    /* EXACTLY top bar height */
   left: 0;
   width: 60px;
-  height: calc(100% - 70px);        /* fill remaining height */
+  height: calc(100vh - 60px);   /* fills precisely remaining space */
+    padding-top: 10px;
+  background: rgba(0,0,0,0.5);
+  border-right: 1px solid var(--soft-border);
+  z-index: 999;
 
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
 }
+
 
 .hidden {
     display: none !important;
@@ -1370,10 +1380,7 @@ body::after {
 }
 
 
-.draft{
-    position:absolute;
-    left:130px;
-}
+
 
 .draftPopup{
     position:fixed;
@@ -1542,11 +1549,7 @@ body::after {
 
 
 /* profile btn */
-/* Sidebar container MUST be flex column */
-.lsidebar {
-  display: flex;
-  flex-direction: column;
-}
+
 
 /* Push profile section to bottom */
 .lsidebar-bottom {
@@ -1640,3 +1643,54 @@ body::after {
   align-items:center;
   justify-content:center;
 }
+
+.rsidebar{
+  display:grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items:center;
+}
+
+/* Center buttons (middle column) */
+.assign{
+  grid-column:2;
+  justify-content:center;
+}
+
+/* Push employee info to far right */
+.empBarInfo{
+  grid-column:3;
+  justify-self:end;
+  margin-right:0;     /* remove your override */
+}
+
+@media (max-width: 900px){
+  .cobox{
+    width: 78vw;
+    margin-left: 80px;
+  }
+}
+
+@media (max-width: 600px){
+
+  .rsidebar{
+     height:50px;
+  }
+
+  .lsidebar{
+     width:50px;
+     top:50px;
+     height: calc(100vh - 50px);
+  }
+
+  .cobox{
+    margin-left: 60px;
+    margin-top: 65px;
+    width: 85vw;
+  }
+
+  .container2{
+    flex-direction: row;
+    width: auto;
+  }
+}
+

@@ -552,7 +552,7 @@ if (this.currentSection==="inbox"){
 }
   if (this.empDisplay) {
   if (this.currentEmpID && this.currentEmpName) {
-    this.empDisplay.innerHTML = `Employee Name: ${this.currentEmpName} <br><br>Employee ID: ${this.currentEmpID}`;
+    this.empDisplay.innerHTML = `Employee Name: ${this.currentEmpName} <br>Employee ID: ${this.currentEmpID}`;
   } else {
     this.empDisplay.innerHTML = "No employee selected";
   }
