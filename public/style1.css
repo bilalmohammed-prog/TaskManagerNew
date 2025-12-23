@@ -1395,12 +1395,19 @@ body{
 }
 
 .container3.editing {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: flex-start !important;
-    justify-content: flex-start !important;
-    gap: 8px !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:8px !important;
 }
+.container3.editing .container2{
+    margin-left:auto !important;
+    display:flex !important;
+    align-items:center;
+    gap:8px;
+}
+
 
 /* Inline edit controls styling */
 .container3.editing .edit-input,
