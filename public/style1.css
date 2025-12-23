@@ -20,7 +20,7 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+/* background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"); */
   pointer-events: none;
   z-index: 0;
 }
@@ -54,7 +54,7 @@ body{
     border-radius: 14px;
     
     background-color: #2f2f2f;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+    /* background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"); */
     font-size: 20px;
     border: rgb(255, 255, 255) 0.25px solid;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
@@ -70,7 +70,7 @@ body{
     padding-left: 30px;
     border-radius: 5px;
     background-color: #2f2f2f;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+    /* background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Cfilter id='n' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"); */
     border: rgb(255, 255, 255) 0.25px solid;
     width:100px;
     font-size: 14px;
@@ -113,7 +113,7 @@ body{
   grid-template-columns: 1fr auto 1fr;
   align-items:center;
 
-  background:#000000;                /* SOLID black */
+  background:#181818;                /* SOLID black */
   border-bottom:1px solid var(--soft-border);
   z-index:1000;
   padding:0 16px;
@@ -571,6 +571,22 @@ body{
     appearance: none;
     -webkit-appearance: none;
 }
+.draft {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  align-self: center;
+}
+.draft{
+  position: static !important;   /* remove absolute behavior */
+  grid-column: 2;
+  align-self: center;
+  justify-self: center;
+}
+.draft svg{
+  display:block;
+}
+
 
 .createEmp{
     position:absolute;
@@ -1363,7 +1379,7 @@ body{
   width: 60px;
   height: calc(100vh - 60px);   /* fills precisely remaining space */
     padding-top: 10px;
-  background:#000000;  
+  background:#181818;  
   border-right: 1px solid var(--soft-border);
   z-index: 999;
 
@@ -1860,4 +1876,28 @@ html, body {
 .time {
   position: relative;
   top: unset;
+}
+.rsidebar{
+  display:grid;
+  grid-template-columns: 1fr auto auto 1fr;
+  align-items:center;
+}
+
+/* Assign buttons group */
+.assign{
+  grid-column:2;
+}
+
+/* Draft button */
+.draft{
+  grid-column:3;
+  position: static !important;
+  align-self:center;
+  justify-self:center;
+}
+
+/* Employee info */
+.empBarInfo{
+  grid-column:4;
+  justify-self:end;
 }
