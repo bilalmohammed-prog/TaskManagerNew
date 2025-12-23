@@ -589,7 +589,7 @@ ${prettyDateTime(item.startTime)} → ${prettyDateTime(item.endTime)}
           this.cobox.innerHTML += `
         <div class="container3" data-class="${item.id}">
         <div class="taskText">
-          ${item.task} :<br> ${item.startTime} to ${item.endTime}
+          ${item.task} :<br> ${prettyDateTime(item.startTime)} to ${prettyDateTime(item.endTime)}
           </div>
           <div class="container2">
           <button class="completed-button" data-class="${item.id}">/</button>

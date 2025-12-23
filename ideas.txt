@@ -25,4 +25,4 @@ trust points which involves how theyve done previous tasks,have modifiers,
 
 12. make it so that the increase in trust points is proprotional to time of task too
 
-13. make desgin better and make everything responsizd and fit for resizeing even for mobile
+13. add task title then description.
