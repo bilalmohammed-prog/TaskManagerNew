@@ -47,6 +47,7 @@ router.post('/api/invitations', requireAuth, async (req, res) => {
     const invitation = await Invitation.create({
       senderUserId: req.userId,
       senderEmpID: req.userEmpID || senderUser.empID,
+        senderEmail: senderUser.email,
       receiverUserId: null,
       receiverEmpID: receiverEmpID || null,
       receiverEmail: normalizedEmail || '',
@@ -226,6 +227,21 @@ router.post('/api/employee/drop', requireAuth, async (req, res) => {
 
   } catch (err) {
     console.error("Drop employee error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+router.get('/api/me', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).lean();
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json({
+      email: user.email,
+      empID: user.empID,
+      name: user.name
+    });
+  } catch (err) {
+    console.error("ME route error", err);
     res.status(500).json({ error: "Server error" });
   }
 });

@@ -1323,7 +1323,7 @@ body{
   gap:14px;
   padding:10px;
   border-radius:8px;
-  background:rgb(200, 200, 200);
+  background:none;
 }
 
 /* Button row */
@@ -1458,7 +1458,7 @@ body{
 /* Smaller typography so the inline editor looks professional and compact */
 .container3 .taskText {
     font-size: 15px;
-    color: black;
+    color: white;
 }
 
 
@@ -1828,7 +1828,7 @@ body{
     gap: 14px;
     padding: 10px;
     border-radius: 8px;
-    background: rgba(255,255,255,0.05);
+    background: none;
   }
 
   .container2{
@@ -1916,14 +1916,14 @@ html, body {
     box-shadow .18s ease,
     background .18s ease;
 }
-
+/* container3tasktext */
 .container3:hover{
   transform: translateY(-3px);
   
-  background:#ffffff;
+  background:none;
 }
 .container3 .taskText{
-  color:#111;
+  color:white;
 }
 
 .container3 .taskText span{
@@ -1941,12 +1941,11 @@ html, body {
 }
 
 /* TASK CARD */
-.container3{
-  background:#ffffff;            /* clean card white */
+.container3{         /* clean card white */
   border-radius:12px;
   padding:16px 18px;
 
-  border:1px solid rgba(0,0,0,0.10);    /* clear separation */
+  border:1px solid white;    /* clear separation */
   box-shadow:none;                        /* remove cheap depth */
 
   transition:
@@ -1958,8 +1957,7 @@ html, body {
 /* CARD HOVER (subtle elegance, not drama) */
 .container3:hover{
   transform: translateY(-2px);
-  background:#fafafa;
-  border-color: rgba(0,0,0,0.18);
+  lighting-color: 1.1;
 }
 
 
@@ -2063,4 +2061,25 @@ html, body {
 .completed-button{
   -webkit-backface-visibility:hidden;
   transform: translateZ(0);
+}
+
+.inbox-card{
+  background: none !important;
+  color: #ffffff !important;
+  border: 1px solid rgb(255, 255, 255) !important;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 20px;
+}
+
+.inbox-card strong{
+  color:#ffffff !important;
+}
+
+.inbox-card span{
+  color:#bbbbbb !important;
+}
+
+.inbox-card div{
+  color:#ffffff !important;
 }

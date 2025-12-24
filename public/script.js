@@ -1309,76 +1309,97 @@ await this.renderInboxToCobox();   // refresh once, at the end
       
       const invites = d1.invitations || [];
       const sent = d2.invitations || [];
-      const sentDrafts = d3.drafts || [];
-const receivedDrafts = d4.drafts || [];
+      const sentDrafts = d4.drafts || [];
+const receivedDrafts = d3.drafts || [];
+console.log("Received Draft Example:", receivedDrafts[0]);
+console.log("Invitation Example:", invites[0]);
 
 
       // build HTML
-      let html = '<div style="padding:12px">';
+      // build HTML
+let html = '<div style="padding:12px">';
       
-      // RECEIVED INVITATIONS
-      html += '<h3 style="margin:6px 0">Received Invitations</h3>';
-      if (invites.length === 0) html += '<div style="color:#666">No invitations received</div>';
-      else {
-        invites.forEach(inv => {
-          const created = inv.createdAt ? new Date(inv.createdAt).toLocaleString() : '';
-          const status = inv.status || 'pending';
-          const from = inv.senderEmpID || 'manager';
-          html += `<div style="border:1px solid #eee;padding:8px;margin:8px 0;border-radius:6px;background:#fff;color:#000">`;
-          html += `<div><strong>From:</strong> ${escapeHtml(from)} <span style="color:#888">• ${created}</span></div>`;
-          if (inv.message) html += `<div style="margin-top:6px">${escapeHtml(inv.message)}</div>`;
-          if (status === 'pending') {
-            html += `<div style="margin-top:8px"><button data-inv-id="${inv._id}" data-inv-action="accept">Accept</button> <button data-inv-id="${inv._id}" data-inv-action="reject">Reject</button></div>`;
-          } else {
-            html += `<div style="margin-top:8px;color:#666">${status.toUpperCase()}${inv.respondedAt? ' • ' + new Date(inv.respondedAt).toLocaleString(): ''}</div>`;
-          }
-          html += '</div>';
-        });
-      }
 
-      // RECEIVED MESSAGES
-      html += '<h3 style="margin:18px 0 6px 0">Received Messages</h3>';
-      if (receivedDrafts.length === 0) html += '<div style="color:#666">No messages received</div>';
-      else {
-        receivedDrafts.forEach(draft => {
-          const timestamp = draft.timestamp ? new Date(draft.timestamp).toLocaleString() : '';
-          const from = draft.senderName || draft.senderID || 'Unknown';
-          html += `<div style="border:1px solid #ddd;padding:8px;margin:8px 0;border-radius:6px;background:#f9f9f9;color:#000">`;
-          html += `<div><strong>From:</strong> ${escapeHtml(from)} <span style="color:#888">• ${timestamp}</span></div>`;
-          html += `<div style="margin-top:6px;color:#333">${escapeHtml(draft.message)}</div>`;
-          html += '</div>';
-        });
-      }
+// ================= SENT MESSAGES =================
+html += '<h3 style="margin:6px 0">Sent Messages</h3>';
+if (sentDrafts.length === 0) html += '<div style="color:#666">No messages sent</div>';
+else {
+  sentDrafts.forEach(draft => {
+    const timestamp = draft.timestamp ? new Date(draft.timestamp).toLocaleString() : '';
+    const to = draft.receiverEmail || 'Unknown';
 
-      // SENT INVITATIONS
-      html += '<h3 style="margin:18px 0 6px 0">Sent Invitations</h3>';
-      if (sent.length === 0) html += '<div style="color:#666">No sent invitations</div>';
-      else {
-        sent.forEach(inv => {
-          const created = inv.createdAt ? new Date(inv.createdAt).toLocaleString() : '';
-          const status = inv.status || 'pending';
-          const to = inv.receiverEmail || inv.receiverEmpID || 'recipient';
-          html += `<div style="border:1px solid #eee;padding:8px;margin:8px 0;border-radius:6px;background:#fff;color:#000">`;
-          html += `<div><strong>To:</strong> ${escapeHtml(to)} <span style="color:#888">• ${created}</span></div>`;
-          if (inv.message) html += `<div style="margin-top:6px">${escapeHtml(inv.message)}</div>`;
-          html += `<div style="margin-top:8px;color:#666">${status.toUpperCase()}${inv.respondedAt? ' • ' + new Date(inv.respondedAt).toLocaleString(): ''}</div>`;
-          html += '</div>';
-        });
-      }
+    html += `<div class="inbox-card">`;
+    html += `<div><strong>To:</strong> ${escapeHtml(to)} <span style="color:#888">• ${timestamp}</span></div>`;
+    html += `<div style="margin-top:6px;color:#333">${escapeHtml(draft.message)}</div>`;
+    html += '</div>';
+  });
+}
 
-      // SENT MESSAGES
-      html += '<h3 style="margin:18px 0 6px 0">Sent Messages</h3>';
-      if (sentDrafts.length === 0) html += '<div style="color:#666">No messages sent</div>';
-      else {
-        sentDrafts.forEach(draft => {
-          const timestamp = draft.timestamp ? new Date(draft.timestamp).toLocaleString() : '';
-          const to = draft.receiverID || 'Unknown';
-          html += `<div style="border:1px solid #ddd;padding:8px;margin:8px 0;border-radius:6px;background:#f9f9f9;color:#000">`;
-          html += `<div><strong>To:</strong> ${escapeHtml(to)} <span style="color:#888">• ${timestamp}</span></div>`;
-          html += `<div style="margin-top:6px;color:#333">${escapeHtml(draft.message)}</div>`;
-          html += '</div>';
-        });
-      }
+
+// ================= SENT INVITATIONS =================
+html += '<h3 style="margin:18px 0 6px 0">Sent Invitations</h3>';
+if (sent.length === 0) html += '<div style="color:#666">No sent invitations</div>';
+else {
+  sent.forEach(inv => {
+    const created = inv.createdAt ? new Date(inv.createdAt).toLocaleString() : '';
+    const status = inv.status || 'pending';
+    const to = inv.receiverEmail || 'Unknown';
+
+    html += `<div class="inbox-card">`;
+    html += `<div><strong>To:</strong> ${escapeHtml(to)} <span style="color:#888">• ${created}</span></div>`;
+    if (inv.message) html += `<div style="margin-top:6px">${escapeHtml(inv.message)}</div>`;
+    html += `<div style="margin-top:8px;color:#666">${status.toUpperCase()}${inv.respondedAt? ' • ' + new Date(inv.respondedAt).toLocaleString(): ''}</div>`;
+    html += '</div>';
+  });
+}
+
+
+// ================= RECEIVED MESSAGES =================
+html += '<h3 style="margin:18px 0 6px 0">Received Messages</h3>';
+if (receivedDrafts.length === 0) html += '<div style="color:#666">No messages received</div>';
+else {
+  receivedDrafts.forEach(draft => {
+    const timestamp = draft.timestamp ? new Date(draft.timestamp).toLocaleString() : '';
+    const from = draft.senderEmail || 'Unknown';
+
+    html += `<div class="inbox-card">`;
+    html += `<div><strong>From:</strong> ${escapeHtml(from)} <span style="color:#888">• ${timestamp}</span></div>`;
+    html += `<div style="margin-top:6px;color:#333">${escapeHtml(draft.message)}</div>`;
+    html += '</div>';
+  });
+}
+
+
+// ================= RECEIVED INVITATIONS =================
+html += '<h3 style="margin:18px 0 6px 0">Received Invitations</h3>';
+if (invites.length === 0) html += '<div style="color:#666">No invitations received</div>';
+else {
+  invites.forEach(inv => {
+    const created = inv.createdAt ? new Date(inv.createdAt).toLocaleString() : '';
+    const status = inv.status || 'pending';
+    const from = inv.senderEmail || "Unknown";
+
+    html += `<div class="inbox-card">`;
+    html += `<div><strong>From:</strong> ${escapeHtml(from)} <span style="color:#eee">• ${created}</span></div>`;
+    if (inv.message) html += `<div style="margin-top:6px">${escapeHtml(inv.message)}</div>`;
+
+    if (status === 'pending') {
+      html += `<div style="margin-top:8px">
+        <button data-inv-id="${inv._id}" data-inv-action="accept">Accept</button>
+        <button data-inv-id="${inv._id}" data-inv-action="reject">Reject</button>
+      </div>`;
+    } else {
+      html += `<div style="margin-top:8px;color:#666">
+        ${status.toUpperCase()}${inv.respondedAt? ' • ' + new Date(inv.respondedAt).toLocaleString(): ''}
+      </div>`;
+    }
+
+    html += '</div>';
+  });
+}
+
+
+
 
       html += '</div>';
       this.cobox.innerHTML = html;
@@ -2253,40 +2274,48 @@ class draftPopup {
   }
 
   async send() {
-    const targetID = this.empInput.value.trim();
-    const message = this.msgInput.value.trim();
-    const senderID = localStorage.getItem("actualEmpID");
-    const senderName = localStorage.getItem("actualEmpName");
+  const targetID = this.empInput.value.trim();
+  const message = this.msgInput.value.trim();
+  const senderID = localStorage.getItem("actualEmpID");
+  const senderName = localStorage.getItem("actualEmpName");
 
-    if (!targetID) return alert("Enter an employee ID.");
-    if (!message) return alert("Message cannot be empty.");
+  if (!targetID) return alert("Enter an employee ID.");
+  if (!message) return alert("Message cannot be empty.");
+
+  try {
+    // 🔥 get email from backend securely
+    const meRes = await fetch(`${CONFIG.BASE_URL}/api/me`, {
+      credentials: "include"
+    });
+
+    const me = await meRes.json();
+    const senderEmail = me.email;
 
     const payload = {
       senderID,
+      senderEmail,
       senderName,
       receiverID: targetID,
       message,
       timestamp: Date.now()
     };
 
-    try {
-      // backend send API
-      await fetch(`${CONFIG.BASE_URL}/draft`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+    await fetch(`${CONFIG.BASE_URL}/draft`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload)
+    });
 
-      // append message to "Sent" inbox UI immediately
-      this.taskManager.renderInboxToCobox();
+    this.taskManager.renderInboxToCobox();
+    alert("Message sent!");
+    this.close();
 
-      alert("Message sent!");
-
-      this.close();
-    } catch (err) {
-      console.error("Send error:", err);
-      alert("Failed to send message.");
-    }
+  } catch (err) {
+    console.error("Send error:", err);
+    alert("Failed to send message.");
   }
+}
+
 }
 const draft = new draftPopup(app1);

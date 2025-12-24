@@ -28,3 +28,5 @@ trust points which involves how theyve done previous tasks,have modifiers,
 13. add task title then description.
 
 14. Make proof of work visible appropriateley
+
+15. make inbox sections collapsable

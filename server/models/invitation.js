@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const invitationSchema = new mongoose.Schema({
   senderUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   senderEmpID: { type: String, required: true },
+  senderEmail: { type: String, required: true },
   receiverUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   receiverEmpID: { type: String, default: null },
   receiverEmail: { type: String, required: true },
