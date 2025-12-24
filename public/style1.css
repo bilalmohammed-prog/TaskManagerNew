@@ -271,9 +271,9 @@ body{
 
 .checkbox{
     
-    width:20px;
-    height:20px;
-    background-color: white;
+    width:30px;
+    height:30px;
+    border:rgba(0, 0, 0,0.8) 1px solid;
 }
 
 .popup{
@@ -2010,7 +2010,7 @@ html, body {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(0, 0, 0,0.8);
   background: rgba(255,255,255,0.08);
 
 
@@ -2030,18 +2030,18 @@ html, body {
 
 /* Individual meaning colors */
 .delete-button{
-  border-color:#ff6b6b;
+
 
   background:#ff4d4d;
 }
 
 .completed-button{
-  border-color:#6dffa1;
+
   background:#42d98d;
 }
 
 .update-button{
-  border-color:#66b7ff;
+
   background:#4aa9ff;
 }
 
@@ -2058,7 +2058,7 @@ html, body {
 }
 .completed-button{
   background:#42d98d !important;
-  border:1px solid #42d98d;
+
 }
 .completed-button{
   -webkit-backface-visibility:hidden;
